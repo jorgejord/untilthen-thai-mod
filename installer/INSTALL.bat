@@ -83,13 +83,29 @@ if not exist "!BAK!" (
 
 REM ---- build Thai pck from backup + payload ----
 call :step "Building Thai version (~3 GB, ~10-30s)..."
+REM kill any stale tool process + remove stale temp pck (could be locked from a previous failed run)
+taskkill /f /im GodotPCKExplorer.Console.exe >nul 2>&1
 if exist "!TMP!" del /f /q "!TMP!" >>"%LOG%" 2>&1
+if exist "!TMP!" (
+  >>"%LOG%" echo WARN: old temp pck is locked, using a fresh name
+  set "TMP=!GAME!\UntilThen.thmod.!RANDOM!.pck"
+)
+>>"%LOG%" echo --- free space on game drive ---
+for /f "tokens=3" %%S in ('dir /-c "!GAME!" ^| find "bytes free"') do >>"%LOG%" echo   %%S bytes free
 set "PLOG=%~dp0_pcktool.tmp"
-"!TOOL!" -pc "!BAK!" "!PAYLOAD!" "!TMP!" "2.4.1.4" > "!PLOG!" 2>&1
->>"%LOG%" echo --- pck tool exit: !errorlevel! (last lines below) ---
-powershell -NoProfile -Command "Get-Content -LiteralPath '!PLOG!' -Tail 12 -EA SilentlyContinue" >>"%LOG%" 2>&1
+set "PACK_OK="
+for /l %%R in (1,1,2) do (
+  if not defined PACK_OK (
+    >>"%LOG%" echo --- pck pack attempt %%R ---
+    "!TOOL!" -pc "!BAK!" "!PAYLOAD!" "!TMP!" "2.4.1.4" > "!PLOG!" 2>&1
+    >>"%LOG%" echo pck tool exit: !errorlevel!
+    if exist "!TMP!" ( set "PACK_OK=1" ) else ( taskkill /f /im GodotPCKExplorer.Console.exe >nul 2>&1 & ping -n 3 127.0.0.1 >nul )
+  )
+)
+>>"%LOG%" echo --- pck tool output (last 40 lines) ---
+powershell -NoProfile -Command "try{ Get-Content -LiteralPath '!PLOG!' -Encoding Unicode -Tail 40 -EA Stop }catch{ Get-Content -LiteralPath '!PLOG!' -Tail 40 -EA SilentlyContinue }" >>"%LOG%" 2>&1
 del /f /q "!PLOG!" 2>nul
-if not exist "!TMP!" ( call :fail "Build failed - see debug.log (pck tool produced no output pck)" & goto :end )
+if not defined PACK_OK ( call :fail "Build failed - send debug.log. Likely antivirus locked the file OR low disk space (needs ~3 GB free). Try: add the game folder to AV exclusions or free up disk, then retry." & goto :end )
 
 REM ---- replace the live pck ----
 call :step "Installing..."
