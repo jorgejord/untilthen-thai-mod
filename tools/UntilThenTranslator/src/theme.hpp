@@ -1,14 +1,14 @@
-// sao_theme.hpp — Sword Art Online (Aincrad menu) styling + animated decorations for Dear ImGui.
+// theme.hpp -- neon / sci-fi inspired UI styling + animated decorations for Dear ImGui.
 // Dark translucent panels, cyan glow, angular corner brackets, scanlines, hover pulse.
 #pragma once
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <cmath>
 
-namespace sao {
+namespace theme {
 
 // ---- live theme state (an accent colour drives EVERYTHING incl. the decorations) ----
-inline ImVec4 g_accent = ImVec4(0.18f, 0.83f, 0.92f, 1.f);  // default: SAO cyan
+inline ImVec4 g_accent = ImVec4(0.18f, 0.83f, 0.92f, 1.f);  // default: neon cyan
 inline bool   g_light  = false;                              // false=dark, true=light background
 
 // ---- palette (all derived from g_accent / g_light so themes retint the whole UI) ----
@@ -25,7 +25,7 @@ inline float Pulse(float speed=2.f, float lo=0.4f, float hi=1.f) {
 }
 inline float EaseOut(float x){ return 1.f - powf(1.f - x, 3.f); }
 
-// SAO signature: four corner brackets `[  ]` around a rect, with optional animated draw-in.
+// Signature: four corner brackets `[  ]` around a rect, with optional animated draw-in.
 inline void CornerBrackets(ImDrawList* dl, ImVec2 a, ImVec2 b, ImU32 col, float len=14.f, float th=2.f) {
     dl->AddLine(ImVec2(a.x, a.y), ImVec2(a.x+len, a.y), col, th);
     dl->AddLine(ImVec2(a.x, a.y), ImVec2(a.x, a.y+len), col, th);
@@ -72,7 +72,7 @@ inline void Sheen(ImDrawList* dl, ImVec2 a, ImVec2 b, ImU32 col, float speed=0.1
     dl->PopClipRect();
 }
 
-// SAO skill-menu selection bar: bright cyan left edge + gradient fading right + glow
+// skill-menu selection bar: bright cyan left edge + gradient fading right + glow
 inline void SkillBar(ImDrawList* dl, ImVec2 a, ImVec2 b, float p=1.f) {
     ImU32 cBright = Cyan(0.55f*p);
     ImU32 cFade   = Cyan(0.0f);
@@ -158,4 +158,4 @@ inline void ApplyStyle() {
     c[ImGuiCol_TabDimmedSelected]    = A(0.26f,1.f);
 }
 
-} // namespace sao
+} // namespace theme

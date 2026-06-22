@@ -1,4 +1,4 @@
-// app.cpp — UntilThen Thai Translator (SAO-themed Dear ImGui editor)
+// app.cpp — UntilThen Thai Translator (neon-themed Dear ImGui editor)
 // Tabs: Story (.inkb sheets) | UI (.translation keys) | Databases (JSON) | Build (inject+pack)
 // Live tag-safety warning (flags rows where [$]/[wave]/[shake]/brackets differ from English).
 #define WIN32_LEAN_AND_MEAN
@@ -22,7 +22,7 @@
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx11.h"
 #include "json.hpp"
-#include "sao_theme.hpp"
+#include "theme.hpp"
 
 using json = nlohmann::json;
 // Find the project root by walking up from the .exe until we see a "translation_sheets" folder.
@@ -81,7 +81,7 @@ static inline const char* T(const char* en,const char* th){ return g_lang? th:en
 // ---- theme presets + custom accent + light mode + custom font (all persisted) ----
 struct ThemePreset{ const char* name; float r,g,b; };
 static const ThemePreset THEMES[]={
-    {"SAO Cyan",0.18f,0.83f,0.92f},{"Crimson",0.95f,0.30f,0.32f},{"Emerald",0.20f,0.86f,0.55f},
+    {"Cyan",0.18f,0.83f,0.92f},{"Crimson",0.95f,0.30f,0.32f},{"Emerald",0.20f,0.86f,0.55f},
     {"Violet",0.62f,0.45f,0.95f},{"Amber",0.96f,0.70f,0.20f},{"Rose",0.96f,0.42f,0.66f},
     {"Azure",0.30f,0.58f,0.98f},{"Steel",0.55f,0.64f,0.74f},
 };
@@ -166,8 +166,8 @@ static bool HasData(const std::string& root){ return !root.empty() &&
 void ApplyUIScale(){ ImGuiStyle& s=ImGui::GetStyle(); s=g_baseStyle; s.ScaleAllSizes(g_uiScale); s.FontSizeBase=g_fontSize; }
 void RebuildFont(){ ImGui::GetStyle().FontSizeBase=g_fontSize; g_needFont=false; }
 // re-apply the whole colour theme from the accent + light-mode state, then rescale.
-void ApplyTheme(){ sao::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCol[2],1.f); sao::g_light=g_lightMode;
-    sao::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale(); }
+void ApplyTheme(){ theme::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCol[2],1.f); theme::g_light=g_lightMode;
+    theme::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale(); }
 // (re)build the font atlas: bundled Sarabun, or a custom .ttf with Sarabun merged in for Thai glyphs.
 void BuildFonts(){ ImGuiIO& io=ImGui::GetIO(); io.Fonts->Clear();
     // Sarabun ships NEXT TO the .exe (portable); fall back to the dev project path.
@@ -315,8 +315,8 @@ void LoadFromGame(const std::string& pckPath){
     }).detach();
 }
 
-// ============================ SAO panel ============================
-// Two NESTED layers: an OUTER frame child that draws the SAO cyan corner brackets, and an INNER content
+// ============================ UI panel ============================
+// Two NESTED layers: an OUTER frame child that draws the cyan corner brackets, and an INNER content
 // child inset ~10px inside it. The brackets live on the outer frame, the text on the inner panel, with a
 // gap between -> the brackets can NEVER overlap or touch the text.
 void BeginPanel(const char* id, ImVec2 sz){
@@ -324,7 +324,7 @@ void BeginPanel(const char* id, ImVec2 sz){
     std::string oid = std::string(id) + "o";
     ImGui::BeginChild(oid.c_str(), sz, 0);
     ImVec2 a=ImGui::GetWindowPos(); ImVec2 ws=ImGui::GetWindowSize(); ImVec2 b=ImVec2(a.x+ws.x, a.y+ws.y);
-    sao::CornerBrackets(ImGui::GetWindowDrawList(), ImVec2(a.x+2,a.y+2), ImVec2(b.x-2,b.y-2), sao::Cyan(sao::Pulse(1.1f,0.72f,1.f)), 17.f, 2.f);
+    theme::CornerBrackets(ImGui::GetWindowDrawList(), ImVec2(a.x+2,a.y+2), ImVec2(b.x-2,b.y-2), theme::Cyan(theme::Pulse(1.1f,0.72f,1.f)), 17.f, 2.f);
     float m=10.f;
     ImGui::SetCursorPos(ImVec2(m,m));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(13,11));
@@ -461,7 +461,7 @@ void StoryEditTable(const std::vector<std::pair<int,int>>& refs){
             ImGui::TableNextRow();
             if(row.hdr){ auto&fe=g_sheet.files[row.fi]; int dn=0; for(auto&l:fe.lines) if(!l.th.empty())dn++;
                 ImGui::TableSetColumnIndex(1);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1));
                 ImGui::AlignTextToFramePadding(); ImGui::Text("\xe2\x96\xb8 %s  [%d/%d]", fe.rel.c_str(), dn, (int)fe.lines.size());
                 ImGui::PopStyleColor();
                 if(scrollTo==i) ImGui::SetScrollHereY(0.12f);
@@ -496,7 +496,7 @@ void StoryEditTable(const std::vector<std::pair<int,int>>& refs){
 }
 // ============================ Tabs ============================
 void DrawStoryTab(){
-    ImVec4 ac(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1);
+    ImVec4 ac(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1);
     ImGui::AlignTextToFramePadding(); ImGui::TextColored(ac,"%s",T("Chapter","บท")); ImGui::SameLine();
     ImGui::SetNextItemWidth(110);
     if(ImGui::Combo("##ch",&g_ch,CHAPS,IM_ARRAYSIZE(CHAPS))) LoadSheet(g_ch,g_reg);
@@ -523,7 +523,7 @@ void DrawStoryTab(){
         if(ImGui::Selectable(lb, sel)){ g_selFile=fi; g_jumpFile=fi; }
         if(sel) ImGui::PopStyleColor();
         ImGui::PopStyleColor(3);
-        if(sel){ sp.SetCurrentChannel(wdl,0); sao::SkillBar(wdl, ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), sao::Pulse(1.2f,0.72f,1.f)); }
+        if(sel){ sp.SetCurrentChannel(wdl,0); theme::SkillBar(wdl, ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), theme::Pulse(1.2f,0.72f,1.f)); }
       }
       sp.Merge(wdl);
     }
@@ -574,7 +574,7 @@ void DrawDBTab(){
     EndPanel();
 }
 void DrawBuildTab(){
-    ImVec4 ac(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1);
+    ImVec4 ac(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1);
     // ---- in-app tutorial (collapsible) ----
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if(ImGui::CollapsingHeader(T("\xf0\x9f\x93\x96 How to use this tab (click to expand)","\xf0\x9f\x93\x96 วิธีใช้แท็บนี้ (กดเพื่อย่อ/ขยาย)"))){
@@ -684,7 +684,7 @@ void DrawBuildTab(){
             "echo ติดตั้งเสร็จ! เปิดเกม -> Settings -> Language -> ภาษาไทย"
         }, "ติดตั้งลงเกม"); }
     if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Backup .bak (first time) -> pack -> overwrite the game's UntilThen.pck\nif Steam is open the copy fails (see log)","สำรอง .bak (ครั้งแรก) -> pack -> ทับ UntilThen.pck ของเกม\nถ้า Steam เปิดอยู่จะ copy ไม่ได้ (ดู log)"));
-    if(busy){ ImGui::EndDisabled(); ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังทำงาน...")); }
+    if(busy){ ImGui::EndDisabled(); ImGui::SameLine(); ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังทำงาน...")); }
     ImGui::Separator();
     ImGui::TextDisabled("Log:");
     BeginPanel("##log", ImVec2(0, ImGui::GetContentRegionAvail().y));
@@ -695,17 +695,17 @@ void DrawBuildTab(){
 
 void DrawSettingsTab(){
     ImGui::Dummy(ImVec2(0,6));
-    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Settings","ตั้งค่า")); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
+    ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"%s",T("Settings","ตั้งค่า")); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
 
     // --- program language ---
-    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Program language","ภาษาของโปรแกรม"));
+    ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"%s",T("Program language","ภาษาของโปรแกรม"));
     const char* LANGS[]={"English","ไทย (Thai)"};
     ImGui::PushItemWidth(260); if(ImGui::Combo("##lang",&g_lang,LANGS,2)){ SaveCfg(); } ImGui::PopItemWidth();
     ImGui::SameLine(); ImGui::TextDisabled("%s",T("(switches this app's UI text)","(สลับข้อความหน้าจอของโปรแกรมนี้)"));
     ImGui::Dummy(ImVec2(0,14)); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
 
     // --- game data folder (program ships WITHOUT game data; the user points it at their own copy) ---
-    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Game data folder","โฟลเดอร์ข้อมูลเกม"));
+    ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"%s",T("Game data folder","โฟลเดอร์ข้อมูลเกม"));
     static char dr[600]={0}; static bool drInit=false; if(!drInit){ strncpy(dr,g_dataRoot.c_str(),599); drInit=true; }
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-210);
     if(ImGui::InputText("##dataroot",dr,sizeof(dr))) g_dataRoot=dr;
@@ -737,7 +737,7 @@ void DrawSettingsTab(){
                 LoadFromGame(f); }   // pick -> start unpacking immediately
         }
         if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Manual fallback if auto-detect fails: pick UntilThen.pck and it unpacks right away","เผื่อ auto หาไม่เจอ: เลือก UntilThen.pck แล้วมันเริ่มแกะให้ทันที"));
-        if(busy){ ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); ImGui::EndDisabled(); }
+        if(busy){ ImGui::SameLine(); ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); ImGui::EndDisabled(); }
         if(!g_gamePck.empty()) ImGui::TextDisabled("pck: %s", g_gamePck.c_str());
         else ImGui::TextDisabled("%s", T("(auto-detects from Steam, or choose the .pck manually)","(หาจาก Steam อัตโนมัติ หรือเลือกไฟล์ .pck เอง)"));
     }
@@ -747,7 +747,7 @@ void DrawSettingsTab(){
     ImGui::Dummy(ImVec2(0,14)); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
 
     // --- theme ---
-    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Theme","ธีมสี"));
+    ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"%s",T("Theme","ธีมสี"));
     auto tname=[&](int i)->const char*{ return i==0? T("Default","ค่าตั้งต้น") : THEMES[i].name; };
     ImGui::PushItemWidth(260);
     if(ImGui::BeginCombo("##theme", g_themeIdx<0? T("Custom","กำหนดเอง"):tname(g_themeIdx))){
@@ -765,7 +765,7 @@ void DrawSettingsTab(){
     ImGui::Dummy(ImVec2(0,14)); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
 
     // --- font ---
-    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Font","ฟอนต์"));
+    ImGui::TextColored(ImVec4(theme::g_accent.x,theme::g_accent.y,theme::g_accent.z,1),"%s",T("Font","ฟอนต์"));
     ImGui::TextDisabled("%s", g_fontPath.empty()? T("Bundled: Sarabun (Thai + Latin)","ในตัว: Sarabun (ไทย + ละติน)") : g_fontPath.c_str());
     if(ImGui::Button(T("Load font (.ttf/.otf)...","เพิ่มฟอนต์ (.ttf/.otf)..."))){
         std::string f=BrowseFile(T("Choose a font to support other languages","เลือกฟอนต์เพื่อรองรับภาษาอื่น"));
@@ -901,10 +901,10 @@ void DrawUI(){
     ImDrawList* dl=ImGui::GetWindowDrawList(); ImVec2 wp=ImGui::GetWindowPos(), ws=ImGui::GetWindowSize();
     // header
     ImVec2 hA=ImVec2(wp.x+8,wp.y+8), hB=ImVec2(wp.x+ws.x-8,wp.y+54);
-    dl->AddRectFilled(hA,hB, sao::Panel(0.88f),3.f); dl->AddRect(hA,hB, sao::CyanDim(0.55f),3.f,0,1.f);
-    sao::Sheen(dl,hA,hB, sao::Cyan()); sao::CornerBrackets(dl,hA,hB, sao::Cyan(sao::Pulse(0.8f,0.72f,1.f)),20.f,2.f);
-    sao::AccentBar(dl, ImVec2(hA.x,hB.y-3), ImVec2(hB.x,hB.y), sao::Cyan(0.85f));
-    ImGui::SetCursorPos(ImVec2(26,18)); ImGui::PushStyleColor(ImGuiCol_Text,sao::Cyan()); ImGui::Text("UNTIL THEN"); ImGui::PopStyleColor();
+    dl->AddRectFilled(hA,hB, theme::Panel(0.88f),3.f); dl->AddRect(hA,hB, theme::CyanDim(0.55f),3.f,0,1.f);
+    theme::Sheen(dl,hA,hB, theme::Cyan()); theme::CornerBrackets(dl,hA,hB, theme::Cyan(theme::Pulse(0.8f,0.72f,1.f)),20.f,2.f);
+    theme::AccentBar(dl, ImVec2(hA.x,hB.y-3), ImVec2(hB.x,hB.y), theme::Cyan(0.85f));
+    ImGui::SetCursorPos(ImVec2(26,18)); ImGui::PushStyleColor(ImGuiCol_Text,theme::Cyan()); ImGui::Text("UNTIL THEN"); ImGui::PopStyleColor();
     ImGui::SameLine(); ImGui::Text("%s",T("// Thai Translator","// ตัวแปลภาษาไทย"));
     ImGui::SameLine(0,10); ImGui::TextColored(ImVec4(0.4f,0.85f,0.95f,1),"v1.0");
     // right side of the header: per-tab search box + Replace + Undo
@@ -945,10 +945,10 @@ void DrawUI(){
     }
     ImGui::EndChild();
     ImGui::PopStyleVar();
-    sao::CornerBrackets(dl, ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), sao::Cyan(0.35f), 15.f, 1.5f);
-    // status footer (in the reserved space, always on-screen) with a softly pulsing SAO indicator dot
+    theme::CornerBrackets(dl, ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), theme::Cyan(0.35f), 15.f, 1.5f);
+    // status footer (in the reserved space, always on-screen) with a softly pulsing indicator dot
     ImGui::Separator();
-    ImGui::TextColored(ImVec4(0.2f,0.9f,1.f, sao::Pulse(2.2f,0.35f,1.f)), "\xe2\x97\x8f"); ImGui::SameLine(0,6);
+    ImGui::TextColored(ImVec4(0.2f,0.9f,1.f, theme::Pulse(2.2f,0.35f,1.f)), "\xe2\x97\x8f"); ImGui::SameLine(0,6);
     ImGui::TextColored(ImVec4(0.6f,0.8f,0.85f,1),"%s",g_status.c_str());
     ImGui::End();
 }
@@ -967,8 +967,8 @@ int main(int,char**){
     // first-run convenience: if we have no editable data yet, try to locate the game automatically
     if(!HasData(g_dataRoot)){ std::string g=AutoFindGame(); if(!g.empty()){ if(HasData(g)) g_dataRoot=g; else g_gamePath=g; } }
     BuildFonts();
-    sao::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCol[2],1.f); sao::g_light=g_lightMode;
-    sao::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale();
+    theme::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCol[2],1.f); theme::g_light=g_lightMode;
+    theme::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale();
     ImGui_ImplWin32_Init(h); ImGui_ImplDX11_Init(g_dev,g_ctx);
     LoadSheet(g_ch,g_reg);
     bool done=false;
