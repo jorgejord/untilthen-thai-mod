@@ -563,6 +563,7 @@ void DrawBuildTab(){
             c.push_back("if not exist \""+bs(payload)+"\" mkdir \""+bs(payload)+"\"");
             c.push_back("xcopy \""+bs(EXEDIR)+"\\scaffold\\*\" \""+bs(payload)+"\\\" /E /I /Y /Q");   // Constants.gd + Game.gd + fonts
             for(auto ch:CHAPS) c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/inject_inkb.py\" --sheet \""+g_dataRoot+"/translation_sheets/sheet_"+ch+"_clean.json\" --out \""+payload+"/assets/story/locales/th\"");
+            c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/build_translation.py\" --json \""+g_dataRoot+"/tools/transproj/combined_th.json\" --locale th --out \""+payload+"/assets/locales/text.th.translation\"");   // UI/menu (no Godot needed)
             c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/validate_inkb.py\"");
             c.push_back("del /q \""+bs(outPck)+"\" 2>nul");
             c.push_back(PckTool()+" -pc \""+userPck+"\" \""+payload+"\" \""+outPck+"\" 2.4.1.4");
