@@ -96,10 +96,16 @@ set "PLOG=%~dp0_pcktool.tmp"
 set "PACK_OK="
 for /l %%R in (1,1,2) do (
   if not defined PACK_OK (
-    >>"%LOG%" echo --- pck pack attempt %%R ---
+    >>"%LOG%" echo --- pck pack attempt %%R to: !TMP! ---
     "!TOOL!" -pc "!BAK!" "!PAYLOAD!" "!TMP!" "2.4.1.4" > "!PLOG!" 2>&1
     >>"%LOG%" echo pck tool exit: !errorlevel!
-    if exist "!TMP!" ( set "PACK_OK=1" ) else ( taskkill /f /im GodotPCKExplorer.Console.exe >nul 2>&1 & ping -n 3 127.0.0.1 >nul )
+    if exist "!TMP!" ( set "PACK_OK=1" ) else (
+      taskkill /f /im GodotPCKExplorer.Console.exe >nul 2>&1
+      REM 2nd try: build into TEMP ^(not in Program Files^) - dodges antivirus / Controlled-Folder-Access blocks
+      set "TMP=%TEMP%\UntilThen.thmod.!RANDOM!.pck"
+      >>"%LOG%" echo retry: building into TEMP instead: !TMP!
+      ping -n 3 127.0.0.1 >nul
+    )
   )
 )
 >>"%LOG%" echo --- pck tool output (last 40 lines) ---
@@ -110,7 +116,7 @@ if not defined PACK_OK ( call :fail "Build failed - send debug.log. Likely antiv
 REM ---- replace the live pck ----
 call :step "Installing..."
 copy /Y "!TMP!" "!PCK!" >>"%LOG%" 2>&1
-if errorlevel 1 ( del /f /q "!TMP!" 2>nul & call :fail "Cannot replace the game file (close Steam / Run as administrator)" & goto :end )
+if errorlevel 1 ( del /f /q "!TMP!" 2>nul & call :fail "Cannot replace the game file. Close Steam fully, OR your antivirus is blocking writes to the game folder - add the 'Until Then' folder to AV exclusions (Windows Security - Virus protection - Exclusions), then retry. Run as administrator if needed." & goto :end )
 del /f /q "!TMP!" >>"%LOG%" 2>&1
 
 call :ok "DONE - installed!"
