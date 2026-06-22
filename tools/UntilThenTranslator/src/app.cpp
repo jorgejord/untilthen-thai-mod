@@ -704,10 +704,12 @@ void DrawSettingsTab(){
         }
         if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Unpacks only story + databases from YOUR UntilThen.pck and builds the editable sheets (no 3 GB extraction)","แกะเฉพาะ story + databases จาก UntilThen.pck ของคุณ แล้วสร้างชีตให้แก้ (ไม่ต้องแตกทั้ง 3GB)"));
         ImGui::SameLine();
-        if(ImGui::Button(T("Choose .pck file...","เลือกไฟล์ .pck เอง..."))){
+        if(ImGui::Button(T("Choose .pck & load...","เลือก .pck เอง แล้วดึงเลย..."))){
             std::string f=BrowsePck(T("Find your UntilThen.pck (in the Steam game folder)","หาไฟล์ UntilThen.pck (ในโฟลเดอร์เกมบน Steam)"));
-            if(!f.empty()){ g_gamePck=f; size_t s=f.find_last_of("\\/"); if(s!=std::string::npos) g_gamePath=f.substr(0,s); SaveCfg(); g_status=T("Game .pck set manually","ตั้งไฟล์ .pck เองแล้ว"); } }
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Manual fallback if auto-detect can't find the game","ใช้เผื่อ auto หาเกมไม่เจอ — เลือกไฟล์เอง"));
+            if(!f.empty()){ g_gamePck=f; size_t s=f.find_last_of("\\/"); if(s!=std::string::npos) g_gamePath=f.substr(0,s); SaveCfg();
+                LoadFromGame(f); }   // pick -> start unpacking immediately
+        }
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Manual fallback if auto-detect fails: pick UntilThen.pck and it unpacks right away","เผื่อ auto หาไม่เจอ: เลือก UntilThen.pck แล้วมันเริ่มแกะให้ทันที"));
         if(busy){ ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); ImGui::EndDisabled(); }
         if(!g_gamePck.empty()) ImGui::TextDisabled("pck: %s", g_gamePck.c_str());
         else ImGui::TextDisabled("%s", T("(auto-detects from Steam, or choose the .pck manually)","(หาจาก Steam อัตโนมัติ หรือเลือกไฟล์ .pck เอง)"));
