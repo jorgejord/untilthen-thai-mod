@@ -107,24 +107,45 @@ std::string BrowseFile(const char* title){
     ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
     return GetOpenFileNameA(&ofn)? std::string(path) : std::string();
 }
-// auto-detect the Until Then game folder across all Steam libraries (same logic as the installer)
+// does this folder hold the game's pck (or its backup)?
+static bool hasPck(const std::string& dir){
+    return GetFileAttributesA((dir+"\\UntilThen.pck").c_str())!=INVALID_FILE_ATTRIBUTES
+        || GetFileAttributesA((dir+"\\UntilThen.pck.bak").c_str())!=INVALID_FILE_ATTRIBUTES;
+}
+// scan one Steam library: <lib>\steamapps\common\*  (don't assume the folder name "Until Then")
+static std::string scanSteamLib(std::string lib){
+    for(char& c:lib) if(c=='/') c='\\';
+    while(!lib.empty() && (lib.back()=='\\'||lib.back()=='/')) lib.pop_back();
+    std::string common=lib+"\\steamapps\\common";
+    if(hasPck(common+"\\Until Then")) return common+"\\Until Then";   // fast path
+    WIN32_FIND_DATAA fd; HANDLE h=FindFirstFileA((common+"\\*").c_str(),&fd);
+    if(h!=INVALID_HANDLE_VALUE){ do{
+        if((fd.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) && fd.cFileName[0]!='.'){
+            std::string d=common+"\\"+fd.cFileName; if(hasPck(d)){ FindClose(h); return d; } }
+    }while(FindNextFileA(h,&fd)); FindClose(h); }
+    return std::string();
+}
+// auto-detect the game across EVERY Steam library on the machine (registry + libraryfolders.vdf + drive sweep)
 static std::string AutoFindGame(){
-    std::vector<std::string> roots; char buf[1024]; DWORD sz;
+    std::vector<std::string> libs; char buf[1024]; DWORD sz;
     auto reg=[&](HKEY h,const char* sub,const char* val)->std::string{ sz=sizeof(buf);
-        if(RegGetValueA(h,sub,val,RRF_RT_REG_SZ,nullptr,buf,&sz)==ERROR_SUCCESS) return buf; return std::string(); };
+        if(RegGetValueA(h,sub,val,RRF_RT_REG_SZ,nullptr,buf,&sz)==ERROR_SUCCESS) return std::string(buf); return std::string(); };
     std::string sp=reg(HKEY_CURRENT_USER,"Software\\Valve\\Steam","SteamPath");
     if(sp.empty()) sp=reg(HKEY_LOCAL_MACHINE,"SOFTWARE\\WOW6432Node\\Valve\\Steam","InstallPath");
-    if(!sp.empty()) roots.push_back(sp);
-    if(!sp.empty()){ std::ifstream f(sp+"\\steamapps\\libraryfolders.vdf"); std::string ln;
+    if(sp.empty()) sp=reg(HKEY_LOCAL_MACHINE,"SOFTWARE\\Valve\\Steam","InstallPath");
+    if(!sp.empty()) libs.push_back(sp);
+    // every library listed in libraryfolders.vdf (the reliable cross-machine source)
+    if(!sp.empty()){ std::string vdf=sp; for(char& c:vdf) if(c=='/') c='\\';
+        std::ifstream f(vdf+"\\steamapps\\libraryfolders.vdf"); std::string ln;
         while(std::getline(f,ln)){ size_t p=ln.find("\"path\""); if(p==std::string::npos) continue;
             size_t a=ln.find('"',p+6); if(a==std::string::npos) continue; size_t b=ln.find('"',a+1); if(b==std::string::npos) continue;
             std::string raw=ln.substr(a+1,b-a-1), out; for(size_t i=0;i<raw.size();++i){ if(raw[i]=='\\'&&i+1<raw.size()&&raw[i+1]=='\\'){ out+='\\'; ++i; } else out+=raw[i]; }
-            roots.push_back(out); } }
-    const char* fb[]={"C:\\Program Files (x86)\\Steam","C:\\Program Files\\Steam","D:\\Steam","D:\\SteamLibrary","E:\\Steam","E:\\SteamLibrary","F:\\Steam","F:\\SteamLibrary"};
-    for(auto s:fb) roots.push_back(s);
-    for(auto& c:roots){ if(c.empty()) continue; std::string g=c+"\\steamapps\\common\\Until Then";
-        if(GetFileAttributesA((g+"\\UntilThen.pck").c_str())!=INVALID_FILE_ATTRIBUTES ||
-           GetFileAttributesA((g+"\\UntilThen.pck.bak").c_str())!=INVALID_FILE_ATTRIBUTES) return g; }
+            libs.push_back(out); } }
+    // broad fallback sweep across drives (works even if the registry/vdf are missing)
+    for(char drv='C'; drv<='J'; ++drv){ std::string d(1,drv); d+=":";
+        const char* sub[]={"\\Program Files (x86)\\Steam","\\Program Files\\Steam","\\Steam","\\SteamLibrary","\\Games\\Steam","\\SteamLibrary\\Steam","\\Program Files\\SteamLibrary"};
+        for(auto s:sub) libs.push_back(d+s); }
+    for(auto& lib:libs){ if(lib.empty()) continue; std::string g=scanSteamLib(lib); if(!g.empty()) return g; }
     return std::string();
 }
 // is there EXTRACTED, editable data at this root? (the game ships everything PACKED in UntilThen.pck,
