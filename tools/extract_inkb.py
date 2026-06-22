@@ -53,7 +53,13 @@ def extract_file(inkb_path: Path) -> list:
 def main():
     ap = argparse.ArgumentParser(description="ดึงบทพูดจาก .inkb เป็น translation sheet")
     ap.add_argument("--chapter", default=None, help="เฉพาะ chapter (เช่น 1, 2, lo, rdvt)")
+    ap.add_argument("--story", default=None, help="โฟลเดอร์ assets/story (override ค่าเริ่มต้น)")
+    ap.add_argument("--out",   default=None, help="โฟลเดอร์ปลายทางของ sheets (override)")
     args = ap.parse_args()
+
+    global STORY_DIR, SHEET_DIR
+    if args.story: STORY_DIR = Path(args.story)
+    if args.out:   SHEET_DIR = Path(args.out)
 
     if not STORY_DIR.exists():
         print(f"❌ ไม่พบ {STORY_DIR}")

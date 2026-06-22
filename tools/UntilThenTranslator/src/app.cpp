@@ -15,7 +15,9 @@
 #include <algorithm>
 #include <cstdio>
 #include <functional>
+#include <iterator>
 
+#include "pck.hpp"
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx11.h"
@@ -25,18 +27,22 @@
 using json = nlohmann::json;
 // Find the project root by walking up from the .exe until we see a "translation_sheets" folder.
 // This makes the tool PORTABLE: drop the whole bundle anywhere and it still finds its data.
+// directory of the .exe itself (program + bundled font live here in the portable build)
+static std::string ExeDir(){ char p[MAX_PATH]={0}; GetModuleFileNameA(nullptr,p,MAX_PATH); std::string s=p; for(char&c:s)if(c=='\\')c='/'; size_t q=s.find_last_of('/'); return q==std::string::npos? s : s.substr(0,q); }
+static const std::string EXEDIR = ExeDir();
 static std::string DetectRoot(){
-    char p[MAX_PATH]={0}; GetModuleFileNameA(nullptr,p,MAX_PATH);
-    std::string cur=p; for(char& c:cur) if(c=='\\') c='/';
-    size_t pos=cur.find_last_of('/'); if(pos!=std::string::npos) cur=cur.substr(0,pos);
+    std::string cur=EXEDIR;
     for(int i=0;i<8;i++){
         DWORD a=GetFileAttributesA((cur+"/translation_sheets").c_str());
         if(a!=INVALID_FILE_ATTRIBUTES && (a&FILE_ATTRIBUTE_DIRECTORY)) return cur;
         size_t q=cur.find_last_of('/'); if(q==std::string::npos) break; cur=cur.substr(0,q);
     }
-    return "C:/Users/theze/Desktop/UntilThenModeThailanguse"; // dev fallback
+    return EXEDIR; // portable fallback: look for data next to the .exe
 }
 static const std::string ROOT = DetectRoot();
+// where the GAME DATA lives (sheets / databases / UI). The program ships WITHOUT any game data;
+// the user points this at their own copy. Defaults to the dev ROOT so the full project still works.
+static std::string g_dataRoot = ROOT;
 
 // ============================ DX11 ============================
 static ID3D11Device*           g_dev=nullptr;
@@ -101,6 +107,30 @@ std::string BrowseFile(const char* title){
     ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
     return GetOpenFileNameA(&ofn)? std::string(path) : std::string();
 }
+// auto-detect the Until Then game folder across all Steam libraries (same logic as the installer)
+static std::string AutoFindGame(){
+    std::vector<std::string> roots; char buf[1024]; DWORD sz;
+    auto reg=[&](HKEY h,const char* sub,const char* val)->std::string{ sz=sizeof(buf);
+        if(RegGetValueA(h,sub,val,RRF_RT_REG_SZ,nullptr,buf,&sz)==ERROR_SUCCESS) return buf; return std::string(); };
+    std::string sp=reg(HKEY_CURRENT_USER,"Software\\Valve\\Steam","SteamPath");
+    if(sp.empty()) sp=reg(HKEY_LOCAL_MACHINE,"SOFTWARE\\WOW6432Node\\Valve\\Steam","InstallPath");
+    if(!sp.empty()) roots.push_back(sp);
+    if(!sp.empty()){ std::ifstream f(sp+"\\steamapps\\libraryfolders.vdf"); std::string ln;
+        while(std::getline(f,ln)){ size_t p=ln.find("\"path\""); if(p==std::string::npos) continue;
+            size_t a=ln.find('"',p+6); if(a==std::string::npos) continue; size_t b=ln.find('"',a+1); if(b==std::string::npos) continue;
+            std::string raw=ln.substr(a+1,b-a-1), out; for(size_t i=0;i<raw.size();++i){ if(raw[i]=='\\'&&i+1<raw.size()&&raw[i+1]=='\\'){ out+='\\'; ++i; } else out+=raw[i]; }
+            roots.push_back(out); } }
+    const char* fb[]={"C:\\Program Files (x86)\\Steam","C:\\Program Files\\Steam","D:\\Steam","D:\\SteamLibrary","E:\\Steam","E:\\SteamLibrary","F:\\Steam","F:\\SteamLibrary"};
+    for(auto s:fb) roots.push_back(s);
+    for(auto& c:roots){ if(c.empty()) continue; std::string g=c+"\\steamapps\\common\\Until Then";
+        if(GetFileAttributesA((g+"\\UntilThen.pck").c_str())!=INVALID_FILE_ATTRIBUTES ||
+           GetFileAttributesA((g+"\\UntilThen.pck.bak").c_str())!=INVALID_FILE_ATTRIBUTES) return g; }
+    return std::string();
+}
+// is there EXTRACTED, editable data at this root? (the game ships everything PACKED in UntilThen.pck,
+// so a raw game folder returns false until the .pck is unpacked.)
+static bool HasData(const std::string& root){ return !root.empty() &&
+    GetFileAttributesA((root+"/translation_sheets").c_str())!=INVALID_FILE_ATTRIBUTES; }
 // ImGui 1.92 dynamic fonts: text size is style.FontSizeBase (re-rasterized on demand), not an atlas rebuild.
 // ApplyUIScale must re-apply FontSizeBase because it resets the whole style from g_baseStyle.
 void ApplyUIScale(){ ImGuiStyle& s=ImGui::GetStyle(); s=g_baseStyle; s.ScaleAllSizes(g_uiScale); s.FontSizeBase=g_fontSize; }
@@ -110,18 +140,24 @@ void ApplyTheme(){ sao::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCo
     sao::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale(); }
 // (re)build the font atlas: bundled Sarabun, or a custom .ttf with Sarabun merged in for Thai glyphs.
 void BuildFonts(){ ImGuiIO& io=ImGui::GetIO(); io.Fonts->Clear();
-    std::string sara=ROOT+"/tools/fontproj/Sarabun-Regular.ttf";
+    // Sarabun ships NEXT TO the .exe (portable); fall back to the dev project path.
+    std::string sara=EXEDIR+"/Sarabun-Regular.ttf";
+    { std::ifstream t(sara); if(!t) sara=ROOT+"/tools/fontproj/Sarabun-Regular.ttf"; }
     std::string base=g_fontPath.empty()? sara : g_fontPath;
     io.Fonts->AddFontFromFileTTF(base.c_str(),g_fontSize,nullptr,io.Fonts->GetGlyphRangesThai());
     if(!g_fontPath.empty()){ ImFontConfig m; m.MergeMode=true; io.Fonts->AddFontFromFileTTF(sara.c_str(),g_fontSize,&m,io.Fonts->GetGlyphRangesThai()); }
 }
+std::string CfgPath(){ std::ifstream a(EXEDIR+"/config.json"); if(a) return EXEDIR+"/config.json";
+    std::ifstream b(ROOT+"/tools/UntilThenTranslator/config.json"); if(b) return ROOT+"/tools/UntilThenTranslator/config.json";
+    return EXEDIR+"/config.json"; }   // new config saves next to the .exe (portable)
 void SaveCfg(){ json j; j["font"]=g_fontSize; j["ui"]=g_uiScale; j["game"]=g_gamePath;
-    j["lang"]=g_lang; j["theme"]=g_themeIdx; j["light"]=g_lightMode; j["fontpath"]=g_fontPath;
+    j["lang"]=g_lang; j["theme"]=g_themeIdx; j["light"]=g_lightMode; j["fontpath"]=g_fontPath; j["dataroot"]=g_dataRoot;
     j["accent"]={g_accentCol[0],g_accentCol[1],g_accentCol[2]};
-    std::ofstream o(ROOT+"/tools/UntilThenTranslator/config.json"); o<<j.dump(2); }
-void LoadCfg(){ std::ifstream f(ROOT+"/tools/UntilThenTranslator/config.json"); if(f){ json j; try{ f>>j;
+    std::ofstream o(CfgPath()); o<<j.dump(2); }
+void LoadCfg(){ std::ifstream f(CfgPath()); if(f){ json j; try{ f>>j;
     g_fontSize=j.value("font",22.f); g_uiScale=j.value("ui",1.f); g_gamePath=j.value("game",g_gamePath);
     g_lang=j.value("lang",0); g_themeIdx=j.value("theme",0); g_lightMode=j.value("light",false); g_fontPath=j.value("fontpath",std::string());
+    g_dataRoot=j.value("dataroot",g_dataRoot);
     if(j.contains("accent")&&j["accent"].is_array()&&j["accent"].size()==3) for(int i=0;i<3;i++) g_accentCol[i]=j["accent"][i].get<float>();
     }catch(...){} } }
 
@@ -144,7 +180,7 @@ struct Sheet{ std::string path; std::vector<FileE> files; bool dirty=false; int 
 static Sheet g_sheet; static int g_ch=0,g_reg=0,g_selFile=-1; static bool g_allFiles=false;
 static int g_jumpFile=-1;   // left-list click in All-files mode -> scroll editor to this file
 static const char* CHAPS[]={"1","2","3","4","5","6","7","8","9","10","lo","rdvt"};
-std::string SheetPath(int ch,int reg){ return ROOT+"/translation_sheets/sheet_"+CHAPS[ch]+(reg?"_rough":"_clean")+".json"; }
+std::string SheetPath(int ch,int reg){ return g_dataRoot+"/translation_sheets/sheet_"+CHAPS[ch]+(reg?"_rough":"_clean")+".json"; }
 void LoadSheet(int ch,int reg){ g_sheet=Sheet{}; g_selFile=-1; std::string p=SheetPath(ch,reg); g_sheet.path=p;
     std::ifstream f(p); if(!f){ g_status="โหลดไม่ได้: "+p; return; } json j; try{ f>>j; }catch(...){ g_status="JSON เสีย"; return; }
     for(auto it=j.begin();it!=j.end();++it){ FileE fe; fe.rel=it.key();
@@ -159,28 +195,30 @@ void SaveSheet(){ if(g_sheet.path.empty())return; json j; for(auto&fe:g_sheet.fi
 // ============================ UI-keys model ============================
 struct Kv{ std::string key,en,th; };
 static std::vector<Kv> g_ui; static bool g_uiLoaded=false,g_uiDirty=false;
-void LoadUI(){ g_ui.clear(); std::ifstream tsv(ROOT+"/tools/transproj/en_real.tsv");
+void LoadUI(){ g_ui.clear(); std::ifstream tsv(g_dataRoot+"/tools/transproj/en_real.tsv");
     std::vector<std::pair<std::string,std::string>> en; std::string ln;
     while(std::getline(tsv,ln)){ auto t=ln.find('\t'); if(t!=std::string::npos) en.push_back({ln.substr(0,t),ln.substr(t+1)}); }
-    json th; { std::ifstream f(ROOT+"/tools/transproj/combined_th.json"); if(f) try{ f>>th; }catch(...){} }
+    json th; { std::ifstream f(g_dataRoot+"/tools/transproj/combined_th.json"); if(f) try{ f>>th; }catch(...){} }
     for(auto& kv:en){ Kv r; r.key=kv.first; r.en=kv.second; if(th.contains(kv.first)&&th[kv.first].is_string()) r.th=th[kv.first].get<std::string>(); g_ui.push_back(r); }
     // also include keys that are in th but not in tsv
     g_uiLoaded=true; g_uiDirty=false; g_status="โหลด UI: "+std::to_string(g_ui.size())+" คีย์"; }
-void SaveUI(){ json j; for(auto& r:g_ui) if(!r.th.empty()) j[r.key]=r.th; std::ofstream o(ROOT+"/tools/transproj/combined_th.json"); o<<j.dump(0); g_uiDirty=false; g_status="บันทึก UI แล้ว (อย่าลืม Build text.th.translation ในแท็บ Build)"; }
+void SaveUI(){ json j; for(auto& r:g_ui) if(!r.th.empty()) j[r.key]=r.th; std::ofstream o(g_dataRoot+"/tools/transproj/combined_th.json"); o<<j.dump(0); g_uiDirty=false; g_status="บันทึก UI แล้ว (อย่าลืม Build text.th.translation ในแท็บ Build)"; }
 
 // ============================ Databases model ============================
 static const char* DBS[]={"email","text","fb","the_liamson_times","geddit","web","cc","matchy","landimu","minds_alike"};
 static int g_dbIdx=0; static json g_dbFlatTh, g_dbFlatEn; static std::vector<std::string> g_dbKeys; static bool g_dbDirty=false;
 void LoadDB(int idx){ g_dbKeys.clear(); g_dbFlatTh=json::object(); g_dbFlatEn=json::object();
     std::string nm=DBS[idx];
-    { std::ifstream f(ROOT+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); if(f){ json j; try{ f>>j; g_dbFlatTh=j.flatten(); }catch(...){} } }
-    { std::ifstream f(ROOT+"/UntilThenExtrallPCK/assets/databases/"+nm+".json"); if(f){ json j; try{ f>>j; g_dbFlatEn=j.flatten(); }catch(...){} } }
+    { std::ifstream f(g_dataRoot+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); if(f){ json j; try{ f>>j; g_dbFlatTh=j.flatten(); }catch(...){} } }
+    { std::ifstream f(g_dataRoot+"/UntilThenExtrallPCK/assets/databases/"+nm+".json"); if(f){ json j; try{ f>>j; g_dbFlatEn=j.flatten(); }catch(...){} } }
     for(auto it=g_dbFlatTh.begin(); it!=g_dbFlatTh.end(); ++it) if(it.value().is_string()) g_dbKeys.push_back(it.key());
+    // fresh extraction (no Thai yet): fall back to the English keys so there's something to translate
+    if(g_dbKeys.empty()) for(auto it=g_dbFlatEn.begin(); it!=g_dbFlatEn.end(); ++it) if(it.value().is_string()) g_dbKeys.push_back(it.key());
     g_dbDirty=false; g_status="โหลด database: "+nm+" ("+std::to_string(g_dbKeys.size())+" ช่อง)"; }
 void SaveDB(){ json out = g_dbFlatTh.unflatten(); std::string nm=DBS[g_dbIdx];
-    std::ofstream o(ROOT+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); o<<out.dump(2); g_dbDirty=false;
+    std::ofstream o(g_dataRoot+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); o<<out.dump(2); g_dbDirty=false;
     // keep _fil mirror in sync (databases shared)
-    std::ofstream o2(ROOT+"/ThaiMod/payload/assets/databases/"+nm+"_fil.json"); o2<<out.dump(2);
+    std::ofstream o2(g_dataRoot+"/ThaiMod/payload/assets/databases/"+nm+"_fil.json"); o2<<out.dump(2);
     g_status="บันทึก database: "+nm+" แล้ว"; }
 
 // ============================ Build (shell, threaded) ============================
@@ -200,6 +238,41 @@ std::string injectCmd(const char* ch,bool rough){ // returns a python inject com
     std::string base = "set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/inject_inkb.py\" --sheet \""+sheet+"\"";
     if(rough) base += " --out \""+ROOT+"/ThaiMod/payload/assets/story/locales/fil\"";
     return base;
+}
+
+// ===== Load data from the user's OWN game (.pck): C++ pulls out story+databases, bundled Python builds sheets =====
+static std::atomic<bool> g_reloadData{false};
+static void mkdirsA(const std::string& path){ std::string cur; for(char c:path){ cur+=c; if(c=='/'||c=='\\') CreateDirectoryA(cur.c_str(),nullptr); } }
+static std::string PyExe(){ std::string e=EXEDIR+"/python/python.exe"; if(GetFileAttributesA(e.c_str())!=INVALID_FILE_ATTRIBUTES) return "\""+e+"\""; return PY; }
+static std::string PipeDir(){ std::string d=EXEDIR+"/pipeline"; if(GetFileAttributesA((d+"/extract_inkb.py").c_str())!=INVALID_FILE_ATTRIBUTES) return d; return ROOT+"/tools"; }
+static bool KitMode(){ return GetFileAttributesA((EXEDIR+"/python/python.exe").c_str())!=INVALID_FILE_ATTRIBUTES
+                          && GetFileAttributesA((EXEDIR+"/pipeline/extract_inkb.py").c_str())!=INVALID_FILE_ATTRIBUTES; }
+void LoadFromGame(const std::string& pckPath){
+    if(g_busy) return; g_busy=true; { std::lock_guard<std::mutex> lk(g_logMx); g_log.clear(); }
+    std::thread([pckPath](){
+        logLine("=== Load from your game ===");
+        logLine("reading: "+pckPath);
+        pck::Pack p = pck::open(pckPath);
+        if(!p.ok){ logLine("[cannot open .pck]"); logLine("=== DONE ==="); g_busy=false; return; }
+        std::string dataRoot=EXEDIR, outRoot=dataRoot+"/UntilThenExtrallPCK"; int nd=0,ns=0;
+        for(auto& e:p.entries){ std::string rp=e.path; if(rp.rfind("res://",0)==0) rp=rp.substr(6);
+            bool isDB    = rp.rfind("assets/databases/",0)==0 && rp.size()>5 && rp.substr(rp.size()-5)==".json";
+            bool isStory = rp.rfind("assets/story/",0)==0 && rp.size()>5 && rp.substr(rp.size()-5)==".inkb" && rp.find("/locales/")==std::string::npos;
+            if(!isDB && !isStory) continue;
+            std::string full=outRoot+"/"+rp; size_t sl=full.find_last_of('/'); if(sl!=std::string::npos) mkdirsA(full.substr(0,sl+1));
+            std::string data=pck::readEntry(p,e); std::ofstream o(full,std::ios::binary); o.write(data.data(),(std::streamsize)data.size()); if(isDB)nd++; else ns++;
+        }
+        logLine("extracted "+std::to_string(nd)+" databases + "+std::to_string(ns)+" story files");
+        std::string cmd = "set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/extract_inkb.py\" --story \""+outRoot+"/assets/story\" --out \""+dataRoot+"/translation_sheets\"";
+        logLine("$ building sheets..."); FILE* pp=_popen((cmd+" 2>&1").c_str(),"r");
+        if(pp){ char b[512]; while(fgets(b,sizeof(b),pp)){ std::string s=b; if(!s.empty()&&s.back()=='\n')s.pop_back(); logLine(s); } _pclose(pp); }
+        std::string ts=dataRoot+"/translation_sheets/";
+        for(auto ch:CHAPS){ std::ifstream t(ts+"sheet_"+std::string(ch)+".json",std::ios::binary); if(!t) continue;
+            std::string body((std::istreambuf_iterator<char>(t)),std::istreambuf_iterator<char>());
+            std::ofstream(ts+"sheet_"+ch+"_clean.json")<<body; std::ofstream(ts+"sheet_"+ch+"_rough.json")<<body; }
+        logLine("=== DONE — your game's text is ready to translate ===");
+        g_reloadData=true; g_busy=false;
+    }).detach();
 }
 
 // ============================ SAO panel ============================
@@ -544,6 +617,35 @@ void DrawSettingsTab(){
     ImGui::SameLine(); ImGui::TextDisabled("%s",T("(switches this app's UI text)","(สลับข้อความหน้าจอของโปรแกรมนี้)"));
     ImGui::Dummy(ImVec2(0,14)); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
 
+    // --- game data folder (program ships WITHOUT game data; the user points it at their own copy) ---
+    ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Game data folder","โฟลเดอร์ข้อมูลเกม"));
+    static char dr[600]={0}; static bool drInit=false; if(!drInit){ strncpy(dr,g_dataRoot.c_str(),599); drInit=true; }
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-210);
+    if(ImGui::InputText("##dataroot",dr,sizeof(dr))) g_dataRoot=dr;
+    ImGui::SameLine();
+    if(ImGui::Button(T("Choose folder...","เลือกโฟลเดอร์..."))){ std::string f=BrowseFolder(T("Pick the folder that contains 'translation_sheets'","เลือกโฟลเดอร์ที่มี translation_sheets")); if(!f.empty()){ g_dataRoot=f; strncpy(dr,f.c_str(),599); SaveCfg(); LoadSheet(g_ch,g_reg); g_uiLoaded=false; LoadDB(g_dbIdx); g_status=T("Data folder set","ตั้งโฟลเดอร์ข้อมูลแล้ว"); } }
+    if(ImGui::Button(T("Auto-detect game","ค้นหาเกมอัตโนมัติ"))){ std::string g=AutoFindGame();
+        if(g.empty()) g_status=T("Couldn't find the game automatically — pick the folder manually","หาเกมอัตโนมัติไม่เจอ — เลือกโฟลเดอร์เองได้");
+        else if(HasData(g)){ g_dataRoot=g; strncpy(dr,g.c_str(),599); SaveCfg(); LoadSheet(g_ch,g_reg); g_uiLoaded=false; LoadDB(g_dbIdx); g_status=T("Found game + data!","เจอเกม + ข้อมูลแล้ว!"); }
+        else { g_gamePath=g; SaveCfg(); g_status=T("Found the game, but its data is still PACKED inside UntilThen.pck — it must be unpacked first (see README)","เจอเกมแล้ว แต่ข้อมูลยังถูกอัดอยู่ใน UntilThen.pck ต้องแกะออกมาก่อน (ดู README)"); } }
+    if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Scans your Steam libraries for Until Then","สแกนหาเกม Until Then ใน Steam library ของคุณ"));
+    if(KitMode()){
+        bool busy=g_busy; if(busy) ImGui::BeginDisabled();
+        if(ImGui::Button(T("\xe2\x96\xb6 Load from my game (.pck)","\xe2\x96\xb6 ดึงข้อความจากเกมของฉัน (.pck)"))){
+            std::string g=AutoFindGame(); if(g.empty()) g=g_gamePath;
+            std::string pp=g+"\\UntilThen.pck";
+            if(GetFileAttributesA(pp.c_str())==INVALID_FILE_ATTRIBUTES) pp=g+"\\UntilThen.pck.bak";
+            if(GetFileAttributesA(pp.c_str())==INVALID_FILE_ATTRIBUTES) g_status=T("UntilThen.pck not found — set the game folder first","ไม่เจอ UntilThen.pck — ตั้งโฟลเดอร์เกมก่อน");
+            else LoadFromGame(pp);
+        }
+        if(busy){ ImGui::EndDisabled(); ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); }
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Unpacks only story + databases from YOUR UntilThen.pck and builds the editable sheets (no 3 GB extraction)","แกะเฉพาะ story + databases จาก UntilThen.pck ของคุณ แล้วสร้างชีตให้แก้ (ไม่ต้องแตกทั้ง 3GB)"));
+    }
+    { bool ok=std::ifstream(g_dataRoot+"/translation_sheets/sheet_1_clean.json").good();
+      ImGui::TextColored(ok?ImVec4(0.4f,0.85f,0.5f,1):ImVec4(0.95f,0.6f,0.3f,1),"%s", ok?T("\xe2\x9c\x93 game data found","\xe2\x9c\x93 เจอข้อมูลเกมแล้ว"):T("\xe2\x9a\xa0 no data here — the edit tabs will be empty until you point this at your data","\xe2\x9a\xa0 ยังไม่เจอข้อมูล — แท็บแก้คำแปลจะว่างจนกว่าจะชี้โฟลเดอร์ถูก")); }
+    ImGui::TextDisabled("%s",T("This program ships WITHOUT game data. Point it at your own extracted Until Then files.","โปรแกรมนี้ไม่ได้แถมข้อมูลเกมมา ต้องชี้ไปที่ไฟล์เกม Until Then ที่คุณแยกออกมาเอง"));
+    ImGui::Dummy(ImVec2(0,14)); ImGui::Separator(); ImGui::Dummy(ImVec2(0,8));
+
     // --- theme ---
     ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"%s",T("Theme","ธีมสี"));
     auto tname=[&](int i)->const char*{ return i==0? T("Default","ค่าตั้งต้น") : THEMES[i].name; };
@@ -605,8 +707,8 @@ void BuildGlobalIndex(){ g_index.clear();
     if(!g_uiLoaded) LoadUI();
     for(auto& kv:g_ui){ GHit h{}; h.type=1; h.dbIdx=-1; h.uiKey=kv.key; h.label="UI   "+kv.key; h.en=kv.en; h.th=kv.th; g_index.push_back(std::move(h)); }
     for(int di=0;di<IM_ARRAYSIZE(DBS);di++){ std::string nm=DBS[di]; json th,en;
-        { std::ifstream f(ROOT+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); if(f) try{ json j; f>>j; th=j.flatten(); }catch(...){} }
-        { std::ifstream f(ROOT+"/UntilThenExtrallPCK/assets/databases/"+nm+".json"); if(f) try{ json j; f>>j; en=j.flatten(); }catch(...){} }
+        { std::ifstream f(g_dataRoot+"/ThaiMod/payload/assets/databases/"+nm+"_th.json"); if(f) try{ json j; f>>j; th=j.flatten(); }catch(...){} }
+        { std::ifstream f(g_dataRoot+"/UntilThenExtrallPCK/assets/databases/"+nm+".json"); if(f) try{ json j; f>>j; en=j.flatten(); }catch(...){} }
         for(auto it=th.begin();it!=th.end();++it){ if(!it.value().is_string()) continue;
             GHit h{}; h.type=2; h.dbIdx=di; h.dbKey=it.key(); h.label=std::string("DB   ")+nm+"  "+it.key();
             h.th=it.value().get<std::string>(); auto e=en.find(it.key()); h.en=(e!=en.end()&&e->is_string())?e->get<std::string>():"";
@@ -704,7 +806,7 @@ void DrawUI(){
     sao::AccentBar(dl, ImVec2(hA.x,hB.y-3), ImVec2(hB.x,hB.y), sao::Cyan(0.85f));
     ImGui::SetCursorPos(ImVec2(26,18)); ImGui::PushStyleColor(ImGuiCol_Text,sao::Cyan()); ImGui::Text("UNTIL THEN"); ImGui::PopStyleColor();
     ImGui::SameLine(); ImGui::Text("%s",T("// Thai Translator","// ตัวแปลภาษาไทย"));
-    ImGui::SameLine(0,10); ImGui::TextColored(ImVec4(0.4f,0.85f,0.95f,1),"v0.8");
+    ImGui::SameLine(0,10); ImGui::TextColored(ImVec4(0.4f,0.85f,0.95f,1),"v1.0");
     // right side of the header: per-tab search box + Replace + Undo
     const char* RB=T("Replace","แทนที่"); const char* UB=T("Undo","ย้อนกลับ"); float fp=ImGui::GetStyle().FramePadding.x*2;
     float bwR=ImGui::CalcTextSize(RB).x+fp+8, bwU=ImGui::CalcTextSize(UB).x+fp+8, sw=240.f;
@@ -762,6 +864,8 @@ int main(int,char**){
     ShowWindow(h,SW_SHOWMAXIMIZED); UpdateWindow(h);
     IMGUI_CHECKVERSION(); ImGui::CreateContext(); ImGuiIO& io=ImGui::GetIO(); io.IniFilename=nullptr;
     LoadCfg();
+    // first-run convenience: if we have no editable data yet, try to locate the game automatically
+    if(!HasData(g_dataRoot)){ std::string g=AutoFindGame(); if(!g.empty()){ if(HasData(g)) g_dataRoot=g; else g_gamePath=g; } }
     BuildFonts();
     sao::g_accent=ImVec4(g_accentCol[0],g_accentCol[1],g_accentCol[2],1.f); sao::g_light=g_lightMode;
     sao::ApplyStyle(); g_baseStyle=ImGui::GetStyle(); ApplyUIScale();
@@ -771,6 +875,7 @@ int main(int,char**){
     while(!done){ MSG m; while(PeekMessage(&m,nullptr,0,0,PM_REMOVE)){ TranslateMessage(&m); DispatchMessage(&m); if(m.message==WM_QUIT)done=true; } if(done)break;
         if(g_needFont) RebuildFont();
         if(g_fontReload){ ImGui_ImplDX11_InvalidateDeviceObjects(); BuildFonts(); ImGui_ImplDX11_CreateDeviceObjects(); ImGui::GetStyle().FontSizeBase=g_fontSize; g_fontReload=false; }
+        if(g_reloadData){ g_dataRoot=EXEDIR; g_ch=0; LoadSheet(g_ch,g_reg); g_uiLoaded=false; LoadDB(g_dbIdx); g_indexBuilt=false; SaveCfg(); g_reloadData=false; g_status="พร้อมแปลแล้ว — โหลดข้อมูลจากเกมเสร็จ"; }
         ImGui_ImplDX11_NewFrame(); ImGui_ImplWin32_NewFrame(); ImGui::NewFrame(); DrawUI(); ImGui::Render();
         const float c[4]={0.02f,0.03f,0.045f,1.f}; g_ctx->OMSetRenderTargets(1,&g_rtv,nullptr); g_ctx->ClearRenderTargetView(g_rtv,c);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); g_sc->Present(1,0); }

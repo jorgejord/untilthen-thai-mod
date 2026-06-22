@@ -18,6 +18,6 @@ cl /nologo /std:c++17 /EHsc /O2 /utf-8 /W3 /MD /DUNICODE /D_UNICODE /D_CRT_SECUR
    %IMGUI%\imgui.cpp %IMGUI%\imgui_draw.cpp %IMGUI%\imgui_tables.cpp %IMGUI%\imgui_widgets.cpp ^
    %IMGUI%\backends\imgui_impl_win32.cpp %IMGUI%\backends\imgui_impl_dx11.cpp ^
    build\app.res ^
-   /link d3d11.lib dxgi.lib d3dcompiler.lib shell32.lib ole32.lib comdlg32.lib /SUBSYSTEM:CONSOLE
+   /link d3d11.lib dxgi.lib d3dcompiler.lib shell32.lib ole32.lib comdlg32.lib advapi32.lib /SUBSYSTEM:CONSOLE
 if errorlevel 1 ( echo [X] Build failed & exit /b 1 )
 echo [OK] build\UntilThenTranslator.exe
