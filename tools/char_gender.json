@@ -1,0 +1,1166 @@
+{
+  "_comment": "แหล่งยืนยันเพศตัวละคร — ดึงจาก characters.json (ชื่อเต็ม) + sprite folders + บริบทเกม. ใช้โดย post_process เป็น safety net และเป็น reference ตอนแปล. gender: male/female/neutral/unknown",
+  "_ambiguous_need_confirm": [],
+  "Mark": {
+    "gender": "male",
+    "full": "Mark Borja",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "ตัวเอก/ผู้เล่น"
+  },
+  "Nicole": {
+    "gender": "female",
+    "full": "Nicole Lacsamana",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "นางเอก/นักร้อง"
+  },
+  "Cathy": {
+    "gender": "female",
+    "full": "Cathy Portillo",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ/นะ/เลย",
+    "role": "เพื่อนสนิท Mark"
+  },
+  "Louise": {
+    "gender": "female",
+    "full": "Louise Ordunia",
+    "pronoun": "ฉัน/ดิฉัน",
+    "ending": "ค่ะ/นะคะ",
+    "role": "ประธานห้อง"
+  },
+  "Sofia": {
+    "gender": "female",
+    "full": "Sofia Rubio",
+    "pronoun": "หนู/ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "รุ่นน้อง สดใส"
+  },
+  "Ridel": {
+    "gender": "male",
+    "full": "Ridel Gonzales",
+    "pronoun": "เรา/นาย/ผม",
+    "ending": "นะ/อ่ะ/ครับ",
+    "role": "เพื่อนกลุ่ม barkada (โทนกันเองแบบสุภาพ ไม่หยาบ)"
+  },
+  "Ryan": {
+    "gender": "male",
+    "full": "Ryan Soriano",
+    "pronoun": "เรา/นาย/ผม",
+    "ending": "นะ/อ่ะ/ครับ",
+    "role": "เพื่อน นักกีฬา (โทนกันเองแบบสุภาพ)"
+  },
+  "Des": {
+    "gender": "female",
+    "full": "Desiree Flores",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "ตัวละครเนื้อเรื่องครึ่งหลัง"
+  },
+  "Celest": {
+    "gender": "female",
+    "full": "Celest Lazaro",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "ตัวละครเนื้อเรื่องครึ่งหลัง"
+  },
+  "Justin": {
+    "gender": "male",
+    "full": "Justin Valencia",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Kate": {
+    "gender": "female",
+    "full": "Kate Corpuz",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": "เย็นชา พูดน้อย"
+  },
+  "Elise": {
+    "gender": "female",
+    "full": "Elise Manahan",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Caloy": {
+    "gender": "male",
+    "full": "Carlos Moi Bulahan",
+    "pronoun": "เรา/นาย",
+    "ending": "นะ/อ่ะ/ครับ",
+    "role": "เพื่อน (โทนกันเองแบบสุภาพ)"
+  },
+  "Alissa": {
+    "gender": "female",
+    "full": "Alissa Rimando",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Paolo": {
+    "gender": "male",
+    "full": "Paolo Borja",
+    "pronoun": "พ่อ/ผม",
+    "ending": "ครับ/นะลูก",
+    "role": "พ่อของ Mark (ทำงานต่างประเทศ)"
+  },
+  "Trish": {
+    "gender": "female",
+    "full": "Trishia Mateo",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Gelo": {
+    "gender": "male",
+    "full": "Angelo Ilagan",
+    "pronoun": "เรา/นาย",
+    "ending": "นะ/อ่ะ/ครับ",
+    "role": "เพื่อน (โทนกันเองแบบสุภาพ)"
+  },
+  "Sam": {
+    "gender": "female",
+    "full": "Samantha Ann Garcia",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "** Sam = Samantha (หญิง) ระวังอย่าแปลเป็นชาย"
+  },
+  "Principal": {
+    "gender": "male",
+    "full": "Principal Chavez (Junjun Chavez)",
+    "pronoun": "ผม/ครู",
+    "ending": "ครับ",
+    "role": "ครูใหญ่ ทางการ"
+  },
+  "Jake": {
+    "gender": "male",
+    "full": "Jake",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Maria": {
+    "gender": "female",
+    "full": "Maria Borja",
+    "pronoun": "แม่/ฉัน",
+    "ending": "นะลูก/ค่ะ",
+    "role": "แม่ของ Mark"
+  },
+  "MarkMom": {
+    "gender": "female",
+    "full": "Maria Borja",
+    "pronoun": "แม่/ฉัน",
+    "ending": "นะลูก/ค่ะ",
+    "role": "แม่ของ Mark"
+  },
+  "Mom": {
+    "gender": "female",
+    "full": "Maria Borja",
+    "pronoun": "แม่/ฉัน",
+    "ending": "นะลูก/ค่ะ",
+    "role": "แม่"
+  },
+  "NicoleMom": {
+    "gender": "female",
+    "full": "",
+    "pronoun": "แม่/ฉัน",
+    "ending": "นะ/ค่ะ",
+    "role": "แม่ของ Nicole"
+  },
+  "NicoleDad": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "พ่อ/ผม",
+    "ending": "นะ/ครับ",
+    "role": "พ่อของ Nicole"
+  },
+  "DesDad": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "พ่อ/ผม",
+    "ending": "นะ/ครับ",
+    "role": "พ่อของ Des"
+  },
+  "JakeDad": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "พ่อ/ผม",
+    "ending": "นะ/ครับ",
+    "role": "พ่อของ Jake"
+  },
+  "Dan": {
+    "gender": "male",
+    "full": "Dan Vergara",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Lucas": {
+    "gender": "male",
+    "full": "Lucas Argente",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Ronel": {
+    "gender": "male",
+    "full": "Ronel",
+    "pronoun": "เรา/นาย/ผม",
+    "ending": "นะ/อ่ะ/ครับ",
+    "role": ""
+  },
+  "Eva": {
+    "gender": "female",
+    "full": "Eva",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Andrew": {
+    "gender": "male",
+    "full": "Andrew Portillo",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "ญาติ Cathy"
+  },
+  "Carlo": {
+    "gender": "male",
+    "full": "Carlo Tan",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Armando": {
+    "gender": "male",
+    "full": "Miguel Armando",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Miguel": {
+    "gender": "male",
+    "full": "Miguel Armando",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Mike": {
+    "gender": "male",
+    "full": "Mike Aguilar",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Jessica": {
+    "gender": "female",
+    "full": "Jessica Bautista",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "KuyaBillie": {
+    "gender": "male",
+    "full": "Kuya Billie",
+    "pronoun": "พี่/ผม",
+    "ending": "ครับ/นะ",
+    "role": "รุ่นพี่ (Kuya=พี่ชาย)"
+  },
+  "Khyle": {
+    "gender": "male",
+    "full": "Khyle Paredes",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Charles": {
+    "gender": "male",
+    "full": "Charles Dan Mayo",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Edward": {
+    "gender": "male",
+    "full": "Edward Nepomuceno",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Brian": {
+    "gender": "male",
+    "full": "Brian Pascual",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Karen": {
+    "gender": "female",
+    "full": "Karen Espino",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Maura": {
+    "gender": "female",
+    "full": "Maura Pongco",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Ivy": {
+    "gender": "female",
+    "full": "Ivy",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "[femboy พูด ค่ะ/คะ]"
+  },
+  "Faye": {
+    "gender": "female",
+    "full": "Faye Briones",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Chesca": {
+    "gender": "female",
+    "full": "Chesca Dela Cruz",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Ian": {
+    "gender": "male",
+    "full": "Sebastian Ian Dimaunahan",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Ruby": {
+    "gender": "female",
+    "full": "Fatima Ruby Santos",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Karl": {
+    "gender": "male",
+    "full": "Karl Lee Uy",
+    "pronoun": "เรา/ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Valerie": {
+    "gender": "female",
+    "full": "Valerie Lacsamana",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะคะ",
+    "role": "ญาติ Nicole"
+  },
+  "Polly": {
+    "gender": "female",
+    "full": "Polly Hernandez",
+    "pronoun": "ดิฉัน/ฉัน",
+    "ending": "ค่ะ",
+    "role": "ผู้ใหญ่หญิง"
+  },
+  "Emily": {
+    "gender": "female",
+    "full": "Emily Joie Nieves",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Gabriella": {
+    "gender": "female",
+    "full": "Gabriella Mae Panganiban",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": ""
+  },
+  "Wilfred": {
+    "gender": "male",
+    "full": "Wilfred Celestial",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Gabriel": {
+    "gender": "male",
+    "full": "Gabriel Trujillo",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "AteTherese": {
+    "gender": "female",
+    "full": "Ate Therese",
+    "pronoun": "พี่/ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "รุ่นพี่หญิง (Ate=พี่สาว)"
+  },
+  "App1": {
+    "gender": "male",
+    "full": "Diego Memoracion",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "App2": {
+    "gender": "female",
+    "full": "Irene Puno",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": ""
+  },
+  "App3": {
+    "gender": "female",
+    "full": "Kristina Tapang",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": ""
+  },
+  "Mem1": {
+    "gender": "male",
+    "full": "Jay Vicente",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Mem2": {
+    "gender": "female",
+    "full": "Camille Ancheta",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": ""
+  },
+  "Mem3": {
+    "gender": "male",
+    "full": "Louis Andrade",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Mem4": {
+    "gender": "male",
+    "full": "Ace Panganiban",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Jose": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Soldier": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "NPCSoldier": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "Beggar1": {
+    "gender": "neutral",
+    "full": "",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": ""
+  },
+  "Teacher": {
+    "gender": "female",
+    "full": "",
+    "pronoun": "ครู/ฉัน",
+    "ending": "ค่ะ/นะ",
+    "role": "ครู (TeacherFemale1)"
+  },
+  "TeacherFemale": {
+    "gender": "female",
+    "full": "",
+    "pronoun": "ครู/ฉัน",
+    "ending": "ค่ะ",
+    "role": ""
+  },
+  "NpcMale": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": "NPC ชาย"
+  },
+  "NpcFemale": {
+    "gender": "female",
+    "full": "",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": "NPC หญิง"
+  },
+  "StudentMale": {
+    "gender": "male",
+    "full": "",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": ""
+  },
+  "StudentFemale": {
+    "gender": "female",
+    "full": "",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": ""
+  },
+  "NpcGeneric": {
+    "gender": "neutral",
+    "full": "",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": ""
+  },
+  "Angel": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "เดาเพศตามชื่อ (แก้ได้) — สมาชิกแชทกลุ่ม",
+    "src": "user-confirmed"
+  },
+  "Jamie": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "ตัวละครรอง (เพศไม่ชัด)",
+    "src": "user-neutral"
+  },
+  "Alex": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "ตัวละครรอง (ยืนยันจากรูปพอร์เทรต)",
+    "src": "user+portrait"
+  },
+  "Marlew": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "ตัวละครรอง (เพศไม่ชัด)",
+    "src": "user-neutral"
+  },
+  "Gabby": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "เดาเพศตามชื่อ (แก้ได้)",
+    "src": "user-confirmed"
+  },
+  "Emcee": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcEmceeMale": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CoupleMan": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CoupleA": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "MalePassenger": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcCrinklesGuy": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "PantryGuy": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "ManongCig": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "ManongChick": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "TruckDriver": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "TricycleDriver": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KuyaGrab": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcFlorante": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcWaiter": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "BasketballNPC": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC_Male": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcAnnoyingSon": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "PreteenMark": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CutsceneMark": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcEmceeFemale": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CoupleWoman": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CoupleB": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "GossipGirl1": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "GossipGirl2": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcCounterGirl": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "BpopWoman": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcNurse": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcMother": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcMom": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcLaura": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "MaamGreenlife": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Granny": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC_Granny": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "TeacherFemale1": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CutsceneCathy": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CathyPhone": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "YoungSofia": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "PreteenNicole": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "WalkwayNicole": {
+    "gender": "female",
+    "pronoun": "ฉัน/เรา",
+    "ending": "ค่ะ",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "SYS": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "TV": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "PSA": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Megaphone": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "MCL": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Anon": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Anonymous": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Unknown": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcEndorser": {
+    "gender": "male",
+    "full": "yPhone Endorser (Sparks)",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": "พรีเซนเตอร์ขายมือถือบนเวที (ยืนยัน sprite+ผู้เล่น=ชาย)"
+  },
+  "BingoHost": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Investigator": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "AttyMendoza": {
+    "gender": "male",
+    "full": "Atty. Mendoza",
+    "pronoun": "ผม",
+    "ending": "ครับ",
+    "role": "ทนาย Mendoza & Co. Law (ยืนยันโดยผู้เล่น)"
+  },
+  "Driver": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Caretaker": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Parent": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Presenter": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Person1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Person2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC3": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NPC4": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "StudentA": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "StudentTaker": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "BusyStudent": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcApp1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcTicket": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Jogger": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "StaffA": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "StaffLobby": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcSpectator1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcSpectator2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "CupsPerson": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "Shopkeep": {
+    "gender": "female",
+    "full": "Anik-anik Shopkeep",
+    "pronoun": "ฉัน",
+    "ending": "ค่ะ",
+    "role": "คนขายร้านของชำร่วย (ยืนยันผู้เล่น: หญิงข้ามเพศ พูด ค่ะ)"
+  },
+  "Local": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidD1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidD2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidE1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidE2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidF1": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "KidF2": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcStudentA": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcStudentB": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcStudentC": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcStudentD": {
+    "gender": "neutral",
+    "pronoun": "เรา",
+    "ending": "",
+    "role": "NPC/role",
+    "src": "gender-report"
+  },
+  "NpcVocalist": {
+    "gender": "male",
+    "full": "Vocalist (Sparks stage)",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ/ว่ะ",
+    "role": "นักร้อง/MC บนเวที (ยืนยันจาก sprite + ผู้เล่น = ชาย)"
+  },
+  "Ace": {
+    "gender": "male",
+    "pronoun": "ผม/เรา",
+    "ending": "ครับ",
+    "role": "ตัวละครรอง (Ace Panganiban)",
+    "src": "characters.json"
+  }
+}
