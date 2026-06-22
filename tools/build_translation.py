@@ -19,7 +19,7 @@ def main():
     if not Path(a.json).exists():
         print(f"(no UI translation at {a.json} — skipping UI build)")
         return
-    data = json.loads(Path(a.json).read_text(encoding='utf-8'))
+    data = json.loads(Path(a.json).read_text(encoding='utf-8-sig'))   # tolerate a BOM
     if not data:
         print("(UI translation is empty — skipping)")
         return
