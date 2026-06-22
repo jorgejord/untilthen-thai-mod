@@ -265,7 +265,7 @@ static const std::string PY = "\"C:\\Users\\theze\\AppData\\Local\\Programs\\Pyt
 static const std::string TOOLS = "\""+ROOT+"\\tools\"";
 std::string injectCmd(const char* ch,bool rough){ // returns a python inject command
     std::string sheet = ROOT+"/translation_sheets/sheet_"+ch+(rough?"_rough":"_clean")+".json";
-    std::string base = "set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/inject_inkb.py\" --sheet \""+sheet+"\"";
+    std::string base = PY+" -X utf8 \""+ROOT+"/tools/inject_inkb.py\" --sheet \""+sheet+"\"";
     if(rough) base += " --out \""+ROOT+"/ThaiMod/payload/assets/story/locales/fil\"";
     return base;
 }
@@ -298,7 +298,7 @@ void LoadFromGame(const std::string& pckPath){
             std::string data=pck::readEntry(p,e); std::ofstream o(full,std::ios::binary); o.write(data.data(),(std::streamsize)data.size()); if(isDB)nd++; else ns++;
         }
         logLine("extracted "+std::to_string(nd)+" databases + "+std::to_string(ns)+" story files");
-        std::string cmd = "set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/extract_inkb.py\" --story \""+outRoot+"/assets/story\" --out \""+dataRoot+"/translation_sheets\"";
+        std::string cmd = PyExe()+" -X utf8 \""+PipeDir()+"/extract_inkb.py\" --story \""+outRoot+"/assets/story\" --out \""+dataRoot+"/translation_sheets\"";
         logLine("$ building sheets..."); FILE* pp=_popen((cmd+" 2>&1").c_str(),"r");
         if(pp){ char b[512]; while(fgets(b,sizeof(b),pp)){ std::string s=b; if(!s.empty()&&s.back()=='\n')s.pop_back(); logLine(s); } _pclose(pp); }
         std::string ts=dataRoot+"/translation_sheets/";
@@ -570,7 +570,29 @@ void DrawDBTab(){
 }
 void DrawBuildTab(){
     ImVec4 ac(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1);
-    ImGui::TextWrapped("%s",T("Inject + pack the pck in-app (runs the proven pipeline) — close Steam before installing","สั่ง inject + แพ็ก pck ในตัว (เรียก pipeline ที่พิสูจน์แล้ว) — ปิด Steam ก่อนติดตั้ง"));
+    // ---- in-app tutorial (collapsible) ----
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if(ImGui::CollapsingHeader(T("\xf0\x9f\x93\x96 How to use this tab (click to expand)","\xf0\x9f\x93\x96 วิธีใช้แท็บนี้ (กดเพื่อย่อ/ขยาย)"))){
+        ImGui::Indent(8);
+        ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+        ImGui::TextColored(ac,"%s",T("Easiest way (with the Kit) — just do these in order:","วิธีง่ายสุด (ถ้าใช้ Kit) — ทำตามนี้เป็นขั้นๆ:"));
+        ImGui::BulletText("%s",T("1) Translate first in the Story / Databases / UI tabs (press Save in each)","1) แปลให้เสร็จก่อนในแท็บ Story / Databases / UI (กด \"บันทึก\" ทุกแท็บ)"));
+        ImGui::BulletText("%s",T("2) Set the game folder below (or it auto-detects)","2) ตั้งโฟลเดอร์เกมข้างล่าง (หรือมันหาให้เอง)"));
+        ImGui::BulletText("%s",T("3) CLOSE STEAM completely","3) ปิด Steam ให้สนิท"));
+        ImGui::BulletText("%s",T("4) Press  [STAR] Build mod (inject + pack)  -> wait for 'DONE' in the log","4) กด  [\xe2\x98\x85 สร้างมอด (inject + pack)]  -> รอจน log ขึ้น DONE"));
+        ImGui::BulletText("%s",T("5) Press  [STAR] Install to game  -> it backs up (.bak) then overwrites your pck","5) กด  [\xe2\x98\x85 ติดตั้งลงเกม]  -> มันสำรองไฟล์เดิม (.bak) แล้วทับให้"));
+        ImGui::BulletText("%s",T("6) Open the game -> Settings -> Language -> Thai","6) เปิดเกม -> Settings -> Language -> ภาษาไทย"));
+        ImGui::Dummy(ImVec2(0,4));
+        ImGui::TextColored(ac,"%s",T("The other buttons (advanced — usually not needed):","ปุ่มอื่นๆ (ขั้นสูง — ปกติไม่ต้องใช้):"));
+        ImGui::BulletText("%s",T("Inject + Validate / Inject all : inject the story per-chapter or all at once","Inject + Validate / Inject ทุกบท : ฉีดคำแปล story ทีละบท หรือทุกบทพร้อมกัน"));
+        ImGui::BulletText("%s",T("Validate only / Deep test : just check nothing will crash the game","Validate only / Deep test : เช็คอย่างเดียวว่าจะไม่ทำเกมแครช"));
+        ImGui::BulletText("%s",T("Pack to pck : pack the payload into a .pck WITHOUT installing","\xe2\x96\xa0 Pack เป็น pck : แพ็ก payload เป็นไฟล์ .pck เฉยๆ (ไม่ติดตั้ง)"));
+        ImGui::BulletText("%s",T("Build UI : build only the menu/UI translation file","Build UI : สร้างไฟล์แปลเมนู/UI อย่างเดียว"));
+        ImGui::Dummy(ImVec2(0,2));
+        ImGui::TextColored(ImVec4(0.95f,0.75f,0.25f,1),"%s",T("[!] Always close Steam before installing. To uninstall: restore UntilThen.pck.bak","[!] ปิด Steam ก่อนติดตั้งทุกครั้ง • ถอนมอด: เอาไฟล์ UntilThen.pck.bak กลับ"));
+        ImGui::PopTextWrapPos();
+        ImGui::Unindent(8);
+    }
     ImGui::Separator();
     // --- game folder picker ---
     ImGui::TextColored(ac,"%s",T("Until Then game folder","โฟลเดอร์เกม Until Then"));
@@ -592,9 +614,9 @@ void DrawBuildTab(){
             std::vector<std::string> c;
             c.push_back("if not exist \""+bs(payload)+"\" mkdir \""+bs(payload)+"\"");
             c.push_back("xcopy \""+bs(EXEDIR)+"\\scaffold\\*\" \""+bs(payload)+"\\\" /E /I /Y /Q");   // Constants.gd + Game.gd + fonts
-            for(auto ch:CHAPS) c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/inject_inkb.py\" --sheet \""+g_dataRoot+"/translation_sheets/sheet_"+ch+"_clean.json\" --out \""+payload+"/assets/story/locales/th\"");
-            c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/build_translation.py\" --json \""+g_dataRoot+"/tools/transproj/combined_th.json\" --locale th --out \""+payload+"/assets/locales/text.th.translation\"");   // UI/menu (no Godot needed)
-            c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/validate_inkb.py\"");
+            for(auto ch:CHAPS) c.push_back(PyExe()+" -X utf8 \""+PipeDir()+"/inject_inkb.py\" --sheet \""+g_dataRoot+"/translation_sheets/sheet_"+ch+"_clean.json\" --out \""+payload+"/assets/story/locales/th\"");
+            c.push_back(PyExe()+" -X utf8 \""+PipeDir()+"/build_translation.py\" --json \""+g_dataRoot+"/tools/transproj/combined_th.json\" --locale th --out \""+payload+"/assets/locales/text.th.translation\"");   // UI/menu (no Godot needed)
+            c.push_back(PyExe()+" -X utf8 \""+PipeDir()+"/validate_inkb.py\"");
             c.push_back("del /q \""+bs(outPck)+"\" 2>nul");
             c.push_back(PckTool()+" -pc \""+userPck+"\" \""+payload+"\" \""+outPck+"\" 2.4.1.4");
             runAsync(c,"Build mod");
@@ -612,18 +634,18 @@ void DrawBuildTab(){
     if(busy) ImGui::BeginDisabled();
     if(ImGui::Button(T("Inject + Validate (this chapter)","Inject + Validate (บทนี้)"))){
         runAsync({ injectCmd(CHAPS[g_ch],false), injectCmd(CHAPS[g_ch],true),
-                   "set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/validate_inkb.py\"" }, std::string("Inject ")+CHAPS[g_ch]); }
+                   PY+" -X utf8 \""+ROOT+"/tools/validate_inkb.py\"" }, std::string("Inject ")+CHAPS[g_ch]); }
     ImGui::SameLine();
     if(ImGui::Button(T("Inject all + Validate","Inject ทุกบท + Validate"))){ std::vector<std::string> c;
         for(auto ch:CHAPS){ c.push_back(injectCmd(ch,false)); c.push_back(injectCmd(ch,true)); }
-        c.push_back("set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/validate_inkb.py\""); runAsync(c,"Inject ALL"); }
+        c.push_back(PY+" -X utf8 \""+ROOT+"/tools/validate_inkb.py\""); runAsync(c,"Inject ALL"); }
     ImGui::SameLine();
     if(ImGui::Button(T("Validate only","ตรวจสอบอย่างเดียว"))){
-        runAsync({ "set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/validate_inkb.py\"" }, "Validate .inkb"); }
+        runAsync({ PY+" -X utf8 \""+ROOT+"/tools/validate_inkb.py\"" }, "Validate .inkb"); }
     if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Check every injected .inkb is safe (idempotent round-trip), no inject","ตรวจว่า .inkb ที่ inject แล้วปลอดภัยทุกไฟล์ (ไม่ inject ใหม่)"));
     ImGui::SameLine();
     if(ImGui::Button(T("Deep test","Deep test (เต็มรูปแบบ)"))){
-        runAsync({ "set PYTHONUTF8=1 && "+PY+" \""+ROOT+"/tools/deep_test.py\"" }, "Deep test"); }
+        runAsync({ PY+" -X utf8 \""+ROOT+"/tools/deep_test.py\"" }, "Deep test"); }
     if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Full integrity gate: rebuild + tag parity + DB/UI/font checks","ตรวจครบ: rebuild + เทียบแท็ก + เช็ค DB/UI/ฟอนต์"));
     ImGui::Dummy(ImVec2(0,4));
     if(ImGui::Button(T("\xe2\x96\xa0 Pack to pck","\xe2\x96\xa0 Pack เป็น pck"))){
