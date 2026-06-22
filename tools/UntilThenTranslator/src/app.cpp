@@ -298,14 +298,19 @@ void LoadFromGame(const std::string& pckPath){
             std::string data=pck::readEntry(p,e); std::ofstream o(full,std::ios::binary); o.write(data.data(),(std::streamsize)data.size()); if(isDB)nd++; else ns++;
         }
         logLine("extracted "+std::to_string(nd)+" databases + "+std::to_string(ns)+" story files");
-        std::string cmd = PyExe()+" -X utf8 \""+PipeDir()+"/extract_inkb.py\" --story \""+outRoot+"/assets/story\" --out \""+dataRoot+"/translation_sheets\"";
-        logLine("$ building sheets..."); FILE* pp=_popen((cmd+" 2>&1").c_str(),"r");
+        if(ns==0) logLine("!!! no story files extracted from the pck — wrong pck? read-only folder?");
+        // run python from the kit folder with SHORT relative paths (dodges long-path / quoting / unicode-arg issues)
+        std::string cmd = "cd /d \""+bs(dataRoot)+"\" && \"python\\python.exe\" -X utf8 \"pipeline\\extract_inkb.py\" --story \"UntilThenExtrallPCK\\assets\\story\" --out \"translation_sheets\"";
+        logLine("$ "+cmd);
+        FILE* pp=_popen((cmd+" 2>&1").c_str(),"r");
         if(pp){ char b[512]; while(fgets(b,sizeof(b),pp)){ std::string s=b; if(!s.empty()&&s.back()=='\n')s.pop_back(); logLine(s); } _pclose(pp); }
-        std::string ts=dataRoot+"/translation_sheets/";
+        std::string ts=dataRoot+"/translation_sheets/"; int nsheet=0;
         for(auto ch:CHAPS){ std::ifstream t(ts+"sheet_"+std::string(ch)+".json",std::ios::binary); if(!t) continue;
             std::string body((std::istreambuf_iterator<char>(t)),std::istreambuf_iterator<char>());
-            std::ofstream(ts+"sheet_"+ch+"_clean.json")<<body; std::ofstream(ts+"sheet_"+ch+"_rough.json")<<body; }
-        logLine("=== DONE — your game's text is ready to translate ===");
+            std::ofstream(ts+"sheet_"+ch+"_clean.json")<<body; std::ofstream(ts+"sheet_"+ch+"_rough.json")<<body; nsheet++; }
+        if(nsheet==0) logLine("!!! NO STORY SHEETS BUILT — see the python output above (path too long? non-English/Thai username folder?)");
+        else logLine("built "+std::to_string(nsheet)+" chapter sheets");
+        logLine("=== DONE ===");
         g_reloadData=true; g_busy=false;
     }).detach();
 }
