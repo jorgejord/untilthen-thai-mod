@@ -91,6 +91,7 @@ static std::string g_fontPath; static bool g_fontReload=false;   // custom .ttf 
 // ---- settings (font size + UI scale, persisted) ----
 static float g_fontSize=22.f, g_uiScale=1.f; static bool g_needFont=false; static ImGuiStyle g_baseStyle;
 static std::string g_gamePath="C:\\Program Files (x86)\\Steam\\steamapps\\common\\Until Then";
+static std::string g_gamePck;   // exact .pck path chosen manually (overrides auto-detect when set)
 // classic folder picker (no COM init needed without BIF_NEWDIALOGSTYLE)
 std::string BrowseFolder(const char* title){
     std::string result; char disp[MAX_PATH]={0};
@@ -104,6 +105,14 @@ std::string BrowseFile(const char* title){
     char path[MAX_PATH]={0};
     OPENFILENAMEA ofn{}; ofn.lStructSize=sizeof(ofn); ofn.lpstrFile=path; ofn.nMaxFile=MAX_PATH;
     ofn.lpstrFilter="Fonts (*.ttf;*.otf)\0*.ttf;*.otf\0All files\0*.*\0"; ofn.lpstrTitle=title;
+    ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
+    return GetOpenFileNameA(&ofn)? std::string(path) : std::string();
+}
+// open-file dialog to pick the game's UntilThen.pck directly (manual fallback)
+std::string BrowsePck(const char* title){
+    char path[MAX_PATH]={0};
+    OPENFILENAMEA ofn{}; ofn.lStructSize=sizeof(ofn); ofn.lpstrFile=path; ofn.nMaxFile=MAX_PATH;
+    ofn.lpstrFilter="Until Then pck (UntilThen.pck;*.pck)\0UntilThen.pck;*.pck\0All files\0*.*\0"; ofn.lpstrTitle=title;
     ofn.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
     return GetOpenFileNameA(&ofn)? std::string(path) : std::string();
 }
@@ -172,13 +181,13 @@ std::string CfgPath(){ std::ifstream a(EXEDIR+"/config.json"); if(a) return EXED
     std::ifstream b(ROOT+"/tools/UntilThenTranslator/config.json"); if(b) return ROOT+"/tools/UntilThenTranslator/config.json";
     return EXEDIR+"/config.json"; }   // new config saves next to the .exe (portable)
 void SaveCfg(){ json j; j["font"]=g_fontSize; j["ui"]=g_uiScale; j["game"]=g_gamePath;
-    j["lang"]=g_lang; j["theme"]=g_themeIdx; j["light"]=g_lightMode; j["fontpath"]=g_fontPath; j["dataroot"]=g_dataRoot;
+    j["lang"]=g_lang; j["theme"]=g_themeIdx; j["light"]=g_lightMode; j["fontpath"]=g_fontPath; j["dataroot"]=g_dataRoot; j["gamepck"]=g_gamePck;
     j["accent"]={g_accentCol[0],g_accentCol[1],g_accentCol[2]};
     std::ofstream o(CfgPath()); o<<j.dump(2); }
 void LoadCfg(){ std::ifstream f(CfgPath()); if(f){ json j; try{ f>>j;
     g_fontSize=j.value("font",22.f); g_uiScale=j.value("ui",1.f); g_gamePath=j.value("game",g_gamePath);
     g_lang=j.value("lang",0); g_themeIdx=j.value("theme",0); g_lightMode=j.value("light",false); g_fontPath=j.value("fontpath",std::string());
-    g_dataRoot=j.value("dataroot",g_dataRoot);
+    g_dataRoot=j.value("dataroot",g_dataRoot); g_gamePck=j.value("gamepck",std::string());
     if(j.contains("accent")&&j["accent"].is_array()&&j["accent"].size()==3) for(int i=0;i<3;i++) g_accentCol[i]=j["accent"][i].get<float>();
     }catch(...){} } }
 
@@ -681,16 +690,27 @@ void DrawSettingsTab(){
         else { g_gamePath=g; SaveCfg(); g_status=T("Found the game, but its data is still PACKED inside UntilThen.pck — it must be unpacked first (see README)","เจอเกมแล้ว แต่ข้อมูลยังถูกอัดอยู่ใน UntilThen.pck ต้องแกะออกมาก่อน (ดู README)"); } }
     if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Scans your Steam libraries for Until Then","สแกนหาเกม Until Then ใน Steam library ของคุณ"));
     if(KitMode()){
+        // resolve the pck: manual choice wins, then the saved game folder, then auto-detect
+        auto resolvePck=[&]()->std::string{
+            if(!g_gamePck.empty() && GetFileAttributesA(g_gamePck.c_str())!=INVALID_FILE_ATTRIBUTES) return g_gamePck;
+            if(hasPck(g_gamePath)){ std::string a=g_gamePath+"\\UntilThen.pck"; if(GetFileAttributesA(a.c_str())!=INVALID_FILE_ATTRIBUTES) return a; return g_gamePath+"\\UntilThen.pck.bak"; }
+            std::string g=AutoFindGame(); if(g.empty()) return std::string();
+            std::string a=g+"\\UntilThen.pck"; return GetFileAttributesA(a.c_str())!=INVALID_FILE_ATTRIBUTES? a : g+"\\UntilThen.pck.bak"; };
         bool busy=g_busy; if(busy) ImGui::BeginDisabled();
         if(ImGui::Button(T("\xe2\x96\xb6 Load from my game (.pck)","\xe2\x96\xb6 ดึงข้อความจากเกมของฉัน (.pck)"))){
-            std::string g=AutoFindGame(); if(g.empty()) g=g_gamePath;
-            std::string pp=g+"\\UntilThen.pck";
-            if(GetFileAttributesA(pp.c_str())==INVALID_FILE_ATTRIBUTES) pp=g+"\\UntilThen.pck.bak";
-            if(GetFileAttributesA(pp.c_str())==INVALID_FILE_ATTRIBUTES) g_status=T("UntilThen.pck not found — set the game folder first","ไม่เจอ UntilThen.pck — ตั้งโฟลเดอร์เกมก่อน");
+            std::string pp=resolvePck();
+            if(pp.empty()) g_status=T("Couldn't find UntilThen.pck — use 'Choose .pck file' below","หา UntilThen.pck ไม่เจอ — กด 'เลือกไฟล์ .pck เอง' ข้างล่าง");
             else LoadFromGame(pp);
         }
-        if(busy){ ImGui::EndDisabled(); ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); }
         if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Unpacks only story + databases from YOUR UntilThen.pck and builds the editable sheets (no 3 GB extraction)","แกะเฉพาะ story + databases จาก UntilThen.pck ของคุณ แล้วสร้างชีตให้แก้ (ไม่ต้องแตกทั้ง 3GB)"));
+        ImGui::SameLine();
+        if(ImGui::Button(T("Choose .pck file...","เลือกไฟล์ .pck เอง..."))){
+            std::string f=BrowsePck(T("Find your UntilThen.pck (in the Steam game folder)","หาไฟล์ UntilThen.pck (ในโฟลเดอร์เกมบน Steam)"));
+            if(!f.empty()){ g_gamePck=f; size_t s=f.find_last_of("\\/"); if(s!=std::string::npos) g_gamePath=f.substr(0,s); SaveCfg(); g_status=T("Game .pck set manually","ตั้งไฟล์ .pck เองแล้ว"); } }
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("%s",T("Manual fallback if auto-detect can't find the game","ใช้เผื่อ auto หาเกมไม่เจอ — เลือกไฟล์เอง"));
+        if(busy){ ImGui::SameLine(); ImGui::TextColored(ImVec4(sao::g_accent.x,sao::g_accent.y,sao::g_accent.z,1),"  %s",T("\xe2\x97\x8f working...","\xe2\x97\x8f กำลังดึง...")); ImGui::EndDisabled(); }
+        if(!g_gamePck.empty()) ImGui::TextDisabled("pck: %s", g_gamePck.c_str());
+        else ImGui::TextDisabled("%s", T("(auto-detects from Steam, or choose the .pck manually)","(หาจาก Steam อัตโนมัติ หรือเลือกไฟล์ .pck เอง)"));
     }
     { bool ok=std::ifstream(g_dataRoot+"/translation_sheets/sheet_1_clean.json").good();
       ImGui::TextColored(ok?ImVec4(0.4f,0.85f,0.5f,1):ImVec4(0.95f,0.6f,0.3f,1),"%s", ok?T("\xe2\x9c\x93 game data found","\xe2\x9c\x93 เจอข้อมูลเกมแล้ว"):T("\xe2\x9a\xa0 no data here — the edit tabs will be empty until you point this at your data","\xe2\x9a\xa0 ยังไม่เจอข้อมูล — แท็บแก้คำแปลจะว่างจนกว่าจะชี้โฟลเดอร์ถูก")); }
