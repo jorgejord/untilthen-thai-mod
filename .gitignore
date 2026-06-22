@@ -1,0 +1,36 @@
+# Build artifacts
+build/
+*.obj
+*.exe
+*.res
+*.pdb
+*.ilk
+__pycache__/
+*.pyc
+
+# Editor local config (contains local game path)
+config.json
+
+# Game files / copyrighted content — NEVER commit
+UntilThenExtrallPCK/
+*.pck
+*.pck.bak
+*.fontdata
+*.translation
+
+# Translated game content (kept out of the public code repo)
+translation_sheets/
+payload/
+ThaiMod/
+
+# Large binaries / third-party tools
+godot/
+*.ttf
+*.otf
+
+# Vendored third-party libs (fetch separately — see README build note)
+third_party/
+
+# OS
+Thumbs.db
+.DS_Store

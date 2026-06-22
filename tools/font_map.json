@@ -1,0 +1,116 @@
+[
+  {
+    "name": "DejaVuSans-Bold.ttf",
+    "ttf_rel": "DejaVuSans-Bold.ttf",
+    "hash": "ca97b5ff67f808c6a578b98a2cb8e0fc",
+    "w": "B"
+  },
+  {
+    "name": "DejaVuSans.ttf",
+    "ttf_rel": "DejaVuSans.ttf",
+    "hash": "178e8f184caa85854adec7368964cca3",
+    "w": "R"
+  },
+  {
+    "name": "IBMPlexSans-VariableFont_wdth,wght.ttf",
+    "ttf_rel": "IBMPlexSans-VariableFont_wdth,wght.ttf",
+    "hash": "5114f13d7a7f133fe2ccfcb657eb89c0",
+    "w": "R"
+  },
+  {
+    "name": "LibreBaskerville-Bold.ttf",
+    "ttf_rel": "LibreBaskerville-Bold.ttf",
+    "hash": "c916afea5b342eacd662d972c80188c2",
+    "w": "B"
+  },
+  {
+    "name": "LibreBaskerville-Regular.ttf",
+    "ttf_rel": "LibreBaskerville-Regular.ttf",
+    "hash": "b07ff0b9669e860267a23bdd8ff5efb4",
+    "w": "R"
+  },
+  {
+    "name": "Merriweather-Regular.ttf",
+    "ttf_rel": "Merriweather-Regular.ttf",
+    "hash": "1460119bfedd7df1a04ff593a8d845eb",
+    "w": "R"
+  },
+  {
+    "name": "NotoSans-VariableFont_wdth,wght.ttf",
+    "ttf_rel": "NotoSans-VariableFont_wdth,wght.ttf",
+    "hash": "0bcf7953375d8c940ed934269abfb5e3",
+    "w": "R"
+  },
+  {
+    "name": "NunitoSans-Bold.ttf",
+    "ttf_rel": "NunitoSans-Bold.ttf",
+    "hash": "5f6e548c747cd93e10d496b7d42b944a",
+    "w": "B"
+  },
+  {
+    "name": "NunitoSans-Light.ttf",
+    "ttf_rel": "NunitoSans-Light.ttf",
+    "hash": "88f3e445b544bfd38bbeaba24e920d34",
+    "w": "R"
+  },
+  {
+    "name": "NunitoSans-Regular.ttf",
+    "ttf_rel": "NunitoSans-Regular.ttf",
+    "hash": "40d1da78e40b96f336a2aa371637363d",
+    "w": "R"
+  },
+  {
+    "name": "PTSans-Bold.ttf",
+    "ttf_rel": "PTSans-Bold.ttf",
+    "hash": "210a6eecced426f1a2cea18afdcfa509",
+    "w": "B"
+  },
+  {
+    "name": "PTSans-Regular.ttf",
+    "ttf_rel": "PTSans-Regular.ttf",
+    "hash": "95487eecb1eaea57fbadaf5f6dff6f90",
+    "w": "R"
+  },
+  {
+    "name": "Quicksand-Bold.ttf",
+    "ttf_rel": "Quicksand-Bold.ttf",
+    "hash": "cb169723ad08e53c3f5163f0506423a7",
+    "w": "B"
+  },
+  {
+    "name": "Quicksand-Regular.ttf",
+    "ttf_rel": "Quicksand-Regular.ttf",
+    "hash": "3ed3bd57037f7d257e07bc64cb6127a1",
+    "w": "R"
+  },
+  {
+    "name": "Raleway-Bold.ttf",
+    "ttf_rel": "Raleway-Bold.ttf",
+    "hash": "9496e879ffd9cc045f18a219b0b49d31",
+    "w": "B"
+  },
+  {
+    "name": "Raleway-Regular.ttf",
+    "ttf_rel": "Raleway-Regular.ttf",
+    "hash": "ff392a2da4f140a66a3ca58851323106",
+    "w": "R"
+  },
+  {
+    "name": "emdash-NotoSans-Regular.ttf",
+    "ttf_rel": "extras/emdash-NotoSans-Regular.ttf",
+    "hash": "a485c148c67de4a7cab2dcf0603e00ce",
+    "w": "R"
+  },
+  {
+    "name": "subset-NotoSans-Regular.ttf",
+    "ttf_rel": "extras/subset-NotoSans-Regular.ttf",
+    "hash": "3236570f0b9edc9bb859e75418129457",
+    "w": "R"
+  },
+  {
+    "name": "subset-NotoSansThai-Regular.ttf",
+    "ttf_rel": "extras/subset-NotoSansThai-Regular.ttf",
+    "hash": "d5003f33ec9cc093865cb79d0b8e0242",
+    "w": "R"
+  }
+]
