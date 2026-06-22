@@ -247,6 +247,11 @@ static std::string PyExe(){ std::string e=EXEDIR+"/python/python.exe"; if(GetFil
 static std::string PipeDir(){ std::string d=EXEDIR+"/pipeline"; if(GetFileAttributesA((d+"/extract_inkb.py").c_str())!=INVALID_FILE_ATTRIBUTES) return d; return ROOT+"/tools"; }
 static bool KitMode(){ return GetFileAttributesA((EXEDIR+"/python/python.exe").c_str())!=INVALID_FILE_ATTRIBUTES
                           && GetFileAttributesA((EXEDIR+"/pipeline/extract_inkb.py").c_str())!=INVALID_FILE_ATTRIBUTES; }
+static std::string PckTool(){ std::string e=EXEDIR+"/pcktool/GodotPCKExplorer.Console.exe"; if(GetFileAttributesA(e.c_str())!=INVALID_FILE_ATTRIBUTES) return "\""+e+"\"";
+    return "\""+ROOT+"/godot-pck-explorer-dotnet-ui-console-win-linux-mac/GodotPCKExplorer.Console.exe\""; }
+static bool KitBuildMode(){ return GetFileAttributesA((EXEDIR+"/pcktool/GodotPCKExplorer.Console.exe").c_str())!=INVALID_FILE_ATTRIBUTES
+                              && GetFileAttributesA((EXEDIR+"/pipeline/inject_inkb.py").c_str())!=INVALID_FILE_ATTRIBUTES; }
+static std::string bs(std::string s){ for(char&c:s) if(c=='/')c='\\'; return s; }   // forward-> back slashes for cmd
 void LoadFromGame(const std::string& pckPath){
     if(g_busy) return; g_busy=true; { std::lock_guard<std::mutex> lk(g_logMx); g_log.clear(); }
     std::thread([pckPath](){
@@ -548,6 +553,30 @@ void DrawBuildTab(){
     { bool ok=std::ifstream(g_gamePath+"\\UntilThen.pck").good()||std::ifstream(g_gamePath+"\\UntilThen.pck.bak").good();
       ImGui::TextColored(ok?ImVec4(0.4f,0.85f,0.5f,1):ImVec4(0.95f,0.5f,0.4f,1),"%s", ok?T("\xe2\x9c\x93 Found UntilThen.pck","\xe2\x9c\x93 เจอ UntilThen.pck"):T("\xe2\x9c\x97 UntilThen.pck not found here","\xe2\x9c\x97 ไม่เจอ UntilThen.pck ในโฟลเดอร์นี้")); }
     ImGui::Separator();
+    if(KitBuildMode()){
+        ImGui::TextColored(ac,"%s",T("\xe2\x98\x85 Build a playable mod from your translation","\xe2\x98\x85 สร้างมอดเล่นได้จากคำแปลของคุณ"));
+        std::string game=g_gamePath, userPck=game+"\\UntilThen.pck";
+        std::string payload=g_dataRoot+"/ThaiMod/payload", outPck=g_dataRoot+"/UntilThen.thmod.pck";
+        bool b0=g_busy; if(b0) ImGui::BeginDisabled();
+        if(ImGui::Button(T("\xe2\x98\x85 Build mod (inject + pack)","\xe2\x98\x85 สร้างมอด (inject + pack)"))){
+            std::vector<std::string> c;
+            c.push_back("if not exist \""+bs(payload)+"\" mkdir \""+bs(payload)+"\"");
+            c.push_back("xcopy \""+bs(EXEDIR)+"\\scaffold\\*\" \""+bs(payload)+"\\\" /E /I /Y /Q");   // Constants.gd + Game.gd + fonts
+            for(auto ch:CHAPS) c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/inject_inkb.py\" --sheet \""+g_dataRoot+"/translation_sheets/sheet_"+ch+"_clean.json\" --out \""+payload+"/assets/story/locales/th\"");
+            c.push_back("set PYTHONUTF8=1 && "+PyExe()+" \""+PipeDir()+"/validate_inkb.py\"");
+            c.push_back("del /q \""+bs(outPck)+"\" 2>nul");
+            c.push_back(PckTool()+" -pc \""+userPck+"\" \""+payload+"\" \""+outPck+"\" 2.4.1.4");
+            runAsync(c,"Build mod");
+        }
+        ImGui::SameLine();
+        if(ImGui::Button(T("\xe2\x98\x85 Install to game","\xe2\x98\x85 ติดตั้งลงเกม"))){
+            runAsync({ "if not exist \""+game+"\\UntilThen.pck.bak\" copy /Y \""+userPck+"\" \""+game+"\\UntilThen.pck.bak\"",
+                       "copy /Y \""+bs(outPck)+"\" \""+userPck+"\"",
+                       "echo Done! Open the game then Settings -> Language -> Thai" }, "Install mod"); }
+        if(b0) ImGui::EndDisabled();
+        ImGui::TextDisabled("%s",T("Injects your story into the th locale + packs it into your UntilThen.pck (close Steam first). Menu/UI stays English.","ฉีด story ลง locale th + แพ็กเข้า UntilThen.pck ของคุณ (ปิด Steam ก่อน) — เมนู/UI ยังเป็นอังกฤษ"));
+        ImGui::Separator();
+    }
     bool busy=g_busy;
     if(busy) ImGui::BeginDisabled();
     if(ImGui::Button(T("Inject + Validate (this chapter)","Inject + Validate (บทนี้)"))){
