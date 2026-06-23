@@ -35,8 +35,18 @@ def patch_binary_offsets_safe(binary_tail: bytes, offset_map: dict) -> bytes:
     while i != -1:
         protected.update(range(i, i + 4))
         i = src.find(b'\xff\xff\xff\xff', i + 1)
-    for i in range(len(src) - 3):
+    # โครงสร้าง bytecode = instruction <type:u32><operand:u32>
+    # string reference จริง = operand ที่ตามหลัง 'instruction type' (ค่าเล็ก < 256, เป็น
+    # byte เดียว เช่น 0, 7, 24). false-match = ค่าที่บังเอิญตรง offset แต่ "นำหน้าด้วยค่าใหญ่"
+    # (เป็น data/offset bytes ไม่ใช่ type เช่น 655360, 1463).
+    # เดิม sliding-window patch 'ทุก' ค่าที่ตรง offset → ไป patch พารามิเตอร์คำสั่งที่บังเอิญ
+    # ตรง → คำสั่งพัง → ตัวละครเซ็ตอัพพัง → custom_aabb crash
+    # FIX: patch เฉพาะ operand ที่ instruction-type (u32 นำหน้า) < 256
+    for i in range(4, len(src) - 3):
         if i in protected or i + 1 in protected or i + 2 in protected or i + 3 in protected:
+            continue
+        prec = struct.unpack_from('<I', src, i - 4)[0]
+        if prec >= 256:           # นำหน้าด้วยค่าใหญ่ = ไม่ใช่ instruction type = false-match
             continue
         val = struct.unpack_from('<I', src, i)[0]
         if val in patchable:
