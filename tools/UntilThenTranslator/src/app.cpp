@@ -292,7 +292,9 @@ void LoadFromGame(const std::string& pckPath){
         std::string dataRoot=EXEDIR, outRoot=dataRoot+"/UntilThenExtrallPCK"; int nd=0,ns=0;
         for(auto& e:p.entries){ std::string rp=e.path; if(rp.rfind("res://",0)==0) rp=rp.substr(6);
             bool isDB    = rp.rfind("assets/databases/",0)==0 && rp.size()>5 && rp.substr(rp.size()-5)==".json";
-            bool isStory = rp.rfind("assets/story/",0)==0 && rp.size()>5 && rp.substr(rp.size()-5)==".inkb" && rp.find("/locales/")==std::string::npos;
+            // NOTE: รวม official locales (de/ja/es/fr/it/zh-CN) ด้วย — oracle_patch ใช้เป็น ground truth กันบั๊กเกมค้าง UTF-8
+            // (extract_inkb.py ข้าม locales/ เองตอนสร้างชีต จึงไม่กระทบ)
+            bool isStory = rp.rfind("assets/story/",0)==0 && rp.size()>5 && rp.substr(rp.size()-5)==".inkb";
             if(!isDB && !isStory) continue;
             std::string full=outRoot+"/"+rp; size_t sl=full.find_last_of('/'); if(sl!=std::string::npos) mkdirsA(full.substr(0,sl+1));
             std::string data=pck::readEntry(p,e); std::ofstream o(full,std::ios::binary); o.write(data.data(),(std::streamsize)data.size()); if(isDB)nd++; else ns++;

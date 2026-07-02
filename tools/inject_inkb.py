@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import inkb_core as core
+import oracle_patch
 
 
 def patch_binary_offsets_safe(binary_tail: bytes, offset_map: dict) -> bytes:
@@ -89,8 +90,9 @@ def build_inkb(base_path: Path, lines: list, selftest: bool = False) -> bytes:
 
         strings[si]['text'] = core.rebuild_dialogue(full, new_content, is_continuation=cont)
 
+    rel = base_path.resolve().relative_to(STORY_DIR.resolve()).as_posix()
     new_section, offset_map = core.build_string_section(strings)
-    new_binary = patch_binary_offsets_safe(parsed['binary_tail'], offset_map)
+    new_binary = oracle_patch.patch(rel, parsed['binary_tail'], offset_map)
     return parsed['header'] + new_section + new_binary
 
 
@@ -161,10 +163,13 @@ def run(chapter: str = None, selftest: bool = False,
                 n_files += 1
                 continue
 
-            # 🛡️ safety gate: ถ้าไฟล์ Thai ไม่ idempotent → fallback อังกฤษ (กันเกม crash)
+            # 🛡️ safety gate: operand ทุกตัวต้องชี้จุดเริ่มสตริง (ไม่ชี้กลางตัว UTF-8 = เกมค้าง)
+            # + idempotent. ไม่ผ่าน → fallback อังกฤษ
             translated = out_bytes
-            if not _is_safe_inkb(out_bytes):
-                print(f"  🛡️  {rel}: idempotent FAIL → ใช้อังกฤษแทน (ปลอดภัย ไม่ ship ไฟล์เสี่ยง)")
+            ok_mid, n_mid = oracle_patch.validate_no_midchar(rel, out_bytes)
+            if not ok_mid or not _is_safe_inkb(out_bytes):
+                why = f"midchar={n_mid}" if not ok_mid else "idempotent FAIL"
+                print(f"  🛡️  {rel}: {why} → ใช้อังกฤษแทน (ปลอดภัย ไม่ ship ไฟล์เสี่ยง)")
                 translated = base_path.read_bytes()
                 n_fallback += 1
 
